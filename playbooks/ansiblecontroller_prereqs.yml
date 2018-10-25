@@ -1,0 +1,75 @@
+---
+- hosts: localhost
+  become: yes
+  become_user: root
+  gather_facts: false
+
+  vars:
+    INSTALL_DIR: "/sas/install"
+    NFS_SHARE_DIR: "{{ INSTALL_DIR }}/setup"
+    ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
+
+
+
+  tasks:
+    - name: Create SAS install directory
+      file:
+        path: "{{ INSTALL_DIR }}"
+        state: directory
+        mode: 0777
+        owner: "{{ INSTALL_USER }}"
+        group: "{{ INSTALL_USER }}"
+
+    - name: Create mountable dir
+      file:
+        path: "{{ NFS_SHARE_DIR }}"
+        state: directory
+        mode: 0777
+        owner: "{{ INSTALL_USER }}"
+        group: "{{ INSTALL_USER }}"
+
+    - name: Create subdirectory for ansible key
+      file:
+        path: "{{ ANSIBLE_KEY_DIR }}"
+        state: directory
+        mode: 0777
+        owner: "{{ INSTALL_USER }}"
+        group: "{{ INSTALL_USER }}"
+
+    - name: create /etc/exports
+      shell:
+        cmd: echo -n "{{ NFS_SHARE_DIR }} *(rw,sync)" > /etc/exports
+
+    - name: Ensure NFS utilities are installed.
+      yum:
+        name:
+          - nfs-utils
+          - nfs-utils-lib
+        state: installed
+
+
+    - name: Ensure NFS utilities are started
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - rpcbind
+        - nfs
+
+
+    - name: create ansible key
+      shell:
+        cmd: "ssh-keygen -t rsa -f /home/{{ INSTALL_USER }}/.ssh/id_rsa -q -N ''"
+      become: yes
+      become_user: "{{ INSTALL_USER }}"
+      args:
+         creates: "/home/{{ INSTALL_USER }}/.ssh/id_rsa"
+
+    - name: copy the public ssh key to shared location
+      become: yes
+      become_user: "{{ INSTALL_USER }}"
+      shell:
+        cmd: "cp /home/{{ INSTALL_USER }}/.ssh/id_rsa.pub {{ ANSIBLE_KEY_DIR }}/id_rsa.pub"
+      args:
+         creates: "{{ ANSIBLE_KEY_DIR }}/id_rsa.pub"
