@@ -6,49 +6,41 @@
 
   vars:
     INSTALL_DIR: "/sas/install"
+    PLAYBOOKS_DIR: "{{ INSTALL_DIR }}/playbooks"
     NFS_SHARE_DIR: "{{ INSTALL_DIR }}/setup"
     ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
-
+    READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
 
 
   tasks:
-    - name: Create SAS install directory
+    - name: Create directories
       file:
-        path: "{{ INSTALL_DIR }}"
+
+        path: "{{ item }}"
         state: directory
         mode: 0777
         owner: "{{ INSTALL_USER }}"
         group: "{{ INSTALL_USER }}"
+      with_items:
+        - "{{ INSTALL_DIR }}"
+        - "{{ NFS_SHARE_DIR }}"
+        - "{{ PLAYBOOKS_DIR }}"
+        - "{{ ANSIBLE_KEY_DIR }}"
+        - "{{ READINESS_FLAGS_DIR }}"
 
-    - name: Create mountable dir
-      file:
-        path: "{{ NFS_SHARE_DIR }}"
-        state: directory
-        mode: 0777
-        owner: "{{ INSTALL_USER }}"
-        group: "{{ INSTALL_USER }}"
-
-    - name: Create subdirectory for ansible key
-      file:
-        path: "{{ ANSIBLE_KEY_DIR }}"
-        state: directory
-        mode: 0777
-        owner: "{{ INSTALL_USER }}"
-        group: "{{ INSTALL_USER }}"
-
-    - name: create /etc/exports
+    #
+    #  NFS setup
+    #
+    - name: nfs setup - create /etc/exports
       shell:
         cmd: echo -n "{{ NFS_SHARE_DIR }} *(rw,sync)" > /etc/exports
-
-    - name: Ensure NFS utilities are installed.
+    - name: nfs setup - install nfs
       yum:
         name:
           - nfs-utils
           - nfs-utils-lib
         state: installed
-
-
-    - name: Ensure NFS utilities are started
+    - name: nfs setup - start nfs
       service:
         name: "{{ item }}"
         state: started
@@ -57,19 +49,24 @@
         - rpcbind
         - nfs
 
-
-    - name: create ansible key
-      shell:
-        cmd: "ssh-keygen -t rsa -f /home/{{ INSTALL_USER }}/.ssh/id_rsa -q -N ''"
+    #
+    #  Ansible Key
+    #
+    - name: Create Ansible key
       become: yes
       become_user: "{{ INSTALL_USER }}"
+      shell:
+        cmd: "ssh-keygen -t rsa -f /home/{{ INSTALL_USER }}/.ssh/id_rsa -q -N ''"
       args:
          creates: "/home/{{ INSTALL_USER }}/.ssh/id_rsa"
 
-    - name: copy the public ssh key to shared location
+    - name: Distribute Ansible key
       become: yes
       become_user: "{{ INSTALL_USER }}"
       shell:
         cmd: "cp /home/{{ INSTALL_USER }}/.ssh/id_rsa.pub {{ ANSIBLE_KEY_DIR }}/id_rsa.pub"
       args:
          creates: "{{ ANSIBLE_KEY_DIR }}/id_rsa.pub"
+
+
+

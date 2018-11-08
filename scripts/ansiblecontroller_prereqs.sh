@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+# Run this script as root or sudo
+# Set the following environment variables:
+#   INSTALL_USER (the userid used for viya ansible install)
+
+
 
 install_java () {
    echo Install java 1.8
@@ -40,6 +45,6 @@ if ! type -p git; then
 fi
 
 
-ANSIBLE_LOG_PATH=/tmp/prereqs.log ansible-playbook /tmp/prereqs.yml -e "INSTALL_USER={{InstallUser}}"
+ANSIBLE_LOG_PATH=/tmp/prereqs.log ansible-playbook /tmp/prereqs.yml -e "INSTALL_USER=${INSTALL_USER}"
 
 

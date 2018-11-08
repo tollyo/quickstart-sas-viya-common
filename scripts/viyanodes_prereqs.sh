@@ -1,15 +1,17 @@
 #!/bin/bash -e
 
-# run this script as root or sudo
-# set the environment variables
-# INSTALL_USER and
-# NFS_SERVER
+# Run this script as root or sudo
+# Set the following environment variables:
+#   INSTALL_USER (the userid used for viya ansible install)
+#   NFS_SERVER (the ip or dns of the bastion host )
+#   HOST (the label/alias for the machine - services|controller)
 
 BASTION_NFS_SHARE="/sas/install/setup"
 NFS_MOUNT_POINT="/mnt/ansiblecontroller"
 ANSIBLE_KEY="${NFS_MOUNT_POINT}/ansible_key/id_rsa.pub"
 INSTALL_USER=${INSTALL_USER:-}
 NFS_SERVER=${NFS_SERVER:-ansible}
+READINESS_FLAG_FILE="${NFS_MOUNT_POINT}/readiness_flags/${HOST}"
 
 #
 # create mount dir
@@ -69,6 +71,10 @@ cat ${ANSIBLE_KEY} >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 END
 
-
+#
+# post readiness flag
+#
+LOCALIP=$(ip -o -f inet addr | grep eth0 | sed -r 's/.*\b(([0-9]{1,3}\.){3}[0-9]{1,3})\/.*/\1/g')
+echo $LOCALIP > $READINESS_FLAG_FILE
 
 
