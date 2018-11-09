@@ -4,13 +4,6 @@
   become_user: root
   gather_facts: true
 
-  vars:
-    INSTALL_DIR: "/sas/install"
-    NFS_SHARE_DIR: "{{ INSTALL_DIR }}/setup"
-    ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
-    READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
-
-
   tasks:
 
     - name: wait for VMs to be be ready

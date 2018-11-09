@@ -6,7 +6,6 @@
 
   vars:
     INSTALL_DIR: "/sas/install"
-    PLAYBOOKS_DIR: "{{ INSTALL_DIR }}/playbooks"
     NFS_SHARE_DIR: "{{ INSTALL_DIR }}/setup"
     ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
     READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
@@ -15,16 +14,14 @@
   tasks:
     - name: Create directories
       file:
-
         path: "{{ item }}"
         state: directory
-        mode: 0777
+        mode: 0700
         owner: "{{ INSTALL_USER }}"
         group: "{{ INSTALL_USER }}"
       with_items:
         - "{{ INSTALL_DIR }}"
         - "{{ NFS_SHARE_DIR }}"
-        - "{{ PLAYBOOKS_DIR }}"
         - "{{ ANSIBLE_KEY_DIR }}"
         - "{{ READINESS_FLAGS_DIR }}"
 

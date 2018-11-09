@@ -44,7 +44,10 @@ if ! type -p git; then
    sudo yum install -y git
 fi
 
-
 ANSIBLE_LOG_PATH=/tmp/prereqs.log ansible-playbook /tmp/prereqs.yml -e "INSTALL_USER=${INSTALL_USER}"
+
+
+
+
 
 
