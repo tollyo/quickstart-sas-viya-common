@@ -1,0 +1,68 @@
+---
+- hosts: [AnsibleController]
+  become: yes
+  become_user: root
+  gather_facts: true
+
+  tasks:
+
+    - name: create /etc/hosts lines for viya hosts
+      lineinfile:
+        path: "{{ TEMPORARY_HOSTNAME_FILE }}"
+        create: yes
+        state: present
+        line: "{{ lookup('file', '{{READINESS_FLAGS_DIR}}/{{item}}') }} {{item}}.viya.sas {{item}}"
+      with_items: "{{ groups['sas-servers'] }}"
+      tags:
+        - hostnames
+
+    - name: create /etc/hosts line for ansible controller
+      lineinfile:
+        path: "{{ TEMPORARY_HOSTNAME_FILE }}"
+        create: yes
+        state: present
+        line: "{{ ansible_eth0.ipv4.address }} ansible.viya.sas ansible"
+      tags:
+        - hostnames
+
+    - name: add hosts to local /etc/hosts file
+      blockinfile:
+        dest: /etc/hosts
+        block: "{{ lookup('file', '{{ TEMPORARY_HOSTNAME_FILE }}') }}"
+        marker: "# {mark} ADD HOSTS"
+      tags:
+        - hostnames
+
+- name: set host names
+  hosts: [sas-servers]
+  become: yes
+  become_user: root
+  gather_facts: false
+
+  tasks:
+    # just setting /etc/hosts is not enough
+    # during the install, SAS queries the hostname on the machines (using the "hostname" command or equivalent
+    - name: update hostname
+      shell: "hostnamectl set-hostname --static {{inventory_hostname}}.viya.sas"
+      tags:
+        - hostnames
+
+# distribute hosts file entries
+- name: distribute hosts file entries
+  hosts: [sas-servers]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - { role: distribute_hosts_file, tags: ["hostnames"] }
+
+- name: initialize known_hosts file
+  hosts: [AnsibleController]
+  become: yes
+  become_user: "{{ INSTALL_USER }}"
+  gather_facts: false
+  roles:
+    - role: initialize_known_hosts
+
+
+

@@ -1,0 +1,11 @@
+---
+
+- name: Initialize ssh cache
+  # log into each VM once with each ip or hostname.
+  # That seeds that hosts ~/.ssh/known_hosts file.
+  # All subsequent ssh attempts will then not get the "unknwn host" interactive message
+  # That is primarily as a convenience for admin tasks later on
+  shell: "ssh -o StrictHostKeyChecking=no {{ item }} exit"
+  with_items: "{{ groups['sas-servers'] }}"
+  tags:
+    - seedknownhosts

@@ -1,0 +1,9 @@
+---
+
+- name: Set hosts
+  blockinfile:
+    dest: /etc/hosts
+    block: "{{ lookup('file', '{{ TEMPORARY_HOSTNAME_FILE }}') }}"
+    marker: "# {mark} ADD HOSTS"
+
+

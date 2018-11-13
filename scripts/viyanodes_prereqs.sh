@@ -6,7 +6,7 @@
 #   NFS_SERVER (the ip or dns of the bastion host )
 #   HOST (the label/alias for the machine - services|controller)
 
-BASTION_NFS_SHARE="/sas/install/setup"
+BASTION_NFS_SHARE="/sas/install/nfs"
 NFS_MOUNT_POINT="/mnt/ansiblecontroller"
 ANSIBLE_KEY="${NFS_MOUNT_POINT}/ansible_key/id_rsa.pub"
 INSTALL_USER=${INSTALL_USER:-}
