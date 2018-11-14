@@ -1,0 +1,63 @@
+---
+
+- name: Wait for Viya VMs to be ready
+  hosts: [AnsibleController]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - { role: predeployment/wait_for_viya_vms, tags: ["wait_for_viya_vms"] }
+
+
+- name: Set up hosts routing
+  hosts: [all]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - { role: predeployment/set_host_routing, tags: ["hostnames"] }
+
+
+- name: Log into each VM once,to avoid "unknown host" interactive message
+  hosts: [AnsibleController]
+  become: yes
+  become_user: "{{ INSTALL_USER }}"
+  gather_facts: false
+  roles:
+    - { role: predeployment/initialize_known_hosts, tags: ["initialize_known_hosts"] }
+
+
+- name: Wait for volume attachments
+  hosts: [AnsibleController]
+  become: yes
+  become_user: "{{ INSTALL_USER }}"
+  gather_facts: false
+  roles:
+    - { role: predeployment/wait_for_volume_attachments, tags: ["wait_for_volume_attachments"] }
+
+
+- name: Create saswork dir
+  hosts: [ProgrammingServicesServers]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - { role: predeployment/create_saswork_dir, tags: ["create_saswork_dir"] }
+
+
+- name: Mount /opt drive
+  hosts: [NeedMountOptDrive]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - { role: predeployment/mount_opt_drive, tags: ["mount_opt_drive"] }
+
+
+- name: Mount cas cache
+  hosts: [CASControllerServer]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - { role: predeployment/mount_cascache, tags: ["mount_cascache"] }

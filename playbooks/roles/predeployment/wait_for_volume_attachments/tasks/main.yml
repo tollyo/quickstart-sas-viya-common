@@ -1,0 +1,17 @@
+---
+- name: wait for all volume attachments to be complete
+  shell: |
+    check_stack_status () {
+      STACK_STATUS=$(aws --no-paginate --region "{{AWSRegion}}" cloudformation describe-stacks --stack-name "{{CloudFormationStack}}"  --query Stacks[*].StackStatus --output text)
+      # fail script if stack creation failed
+      if [ "$(echo "$STACK_STATUS" | grep "CREATE_FAILED")" ]; then exit 1; fi
+    }
+
+    STATUS="status"
+    until [ $(echo "$STATUS" | wc -w) = $(echo "$STATUS" | sed 's/CREATE_COMPLETE/CREATE_COMPLETE\n/g' | grep -c "CREATE_COMPLETE") ]; do
+      sleep 1
+      STATUS=$(aws --no-paginate --region "{{AWSRegion}}" cloudformation describe-stack-resources --stack-name "{{CloudFormationStack}}"  --query 'StackResources[?ResourceType ==`AWS::EC2::VolumeAttachment`].ResourceStatus' --output text)
+      [ "$STATUS" = "" ] && STATUS="status"
+      if [ "$(echo "$STATUS" | grep "CREATE_FAILED")" ]; then exit 1; fi
+      check_stack_status
+    done

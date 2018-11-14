@@ -1,0 +1,13 @@
+---
+
+- name: wait for VMs to be be ready
+  # loop for 5 minutes
+  # waiting for the viya VMs to post their file
+  # into the readiness flags directory
+  wait_for:
+    path: "{{ READINESS_FLAGS_DIR }}/{{ item }}"
+    state: present
+    timeout: 300
+    sleep: 1
+  with_items: "{{ groups['sas-servers'] }}"
+

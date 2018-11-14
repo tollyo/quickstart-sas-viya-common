@@ -1,0 +1,10 @@
+---
+- name: create saswork subdir
+  file:
+    path: "{{ SASWORK_DIR }}"
+    state: directory
+    owner: "{{ INSTALL_USER }}"
+    group: "{{ INSTALL_USER }}"
+    mode: 0777
+
+

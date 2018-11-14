@@ -1,0 +1,58 @@
+---
+- name: create saslib subdir
+  file:
+    path: /opt/sas/viya/config/data/cas
+    state: directory
+- name: format saslib volume
+  filesystem: fstype=xfs dev=/dev/xvdl
+- name: mount saslib volume
+  mount: name=/opt/sas/viya/config/data/cas fstype=xfs state=mounted src=/dev/xvdl
+
+
+- name: check for xvdd device
+  stat:
+    path: /dev/xvdd
+  register: xvdd
+- name: format new volume
+  filesystem: fstype=xfs dev=/dev/xvdd
+  when: xvdd.stat.exists == true
+- name: mount sastmp
+  mount: name=/sastmp fstype=xfs state=mounted src=/dev/xvdd
+  when: xvdd.stat.exists == true
+
+- name: make sure mdadm is installed
+  yum:
+    name: mdadm
+    state: present
+
+- name: Download disks_ephemeral.sh
+  copy:
+    src: "{{ SCRIPTS_DIR }}/disks_ephemeral.sh"
+    dest: /usr/sbin/disks_ephemeral.sh
+    mode: "0700"
+- name: create disks_ephemeral service definition
+  copy:
+    dest: /etc/systemd/system/disks_ephemeral.service
+    content: |
+      [Unit]
+      Description=Format and Mount Ephemeral Disks
+      [Service]
+      ExecStart=/usr/sbin/disks_ephemeral.sh
+      [Install]
+      WantedBy=multi-user.target
+- name: reload systemctl
+  command: systemctl daemon-reload
+- name: ephemeral disks service
+  service:
+    name: disks_ephemeral
+    enabled: yes
+    state: started
+
+- name: create cascache subdir
+  file:
+    path: /sastmp/cascache
+    state: directory
+    mode: 0777
+
+
+

@@ -1,0 +1,18 @@
+---
+- name: create viya installation subdir
+  file:
+    path: /opt/sas
+    state: directory
+
+- name: format viya installation volume
+  filesystem: fstype=xfs dev=/dev/xvdg
+
+- name: mount viya installation volume
+  mount: name=/opt/sas fstype=xfs state=mounted src=/dev/xvdg
+
+
+
+
+
+
+

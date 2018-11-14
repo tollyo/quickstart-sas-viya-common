@@ -4,5 +4,8 @@ NFS_SHARE_DIR: "{{ INSTALL_DIR }}/nfs"
 ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
 READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
 LOGS_DIR: "{{ INSTALL_DIR }}/logs"
+SCRIPTS_DIR: "/sas/install/scripts"
+SASWORK_DIR: "/sastmp/saswork"
+
 
 TEMPORARY_HOSTNAME_FILE: "/tmp/hostnames.txt"
