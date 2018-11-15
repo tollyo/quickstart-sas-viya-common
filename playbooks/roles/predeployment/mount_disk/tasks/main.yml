@@ -1,0 +1,49 @@
+---
+
+- name: create {{ MOUNT_DIR }} directory
+  file:
+    path: "{{ MOUNT_DIR }}"
+    state: directory
+    owner: "{{ INSTALL_USER }}"
+    group: "{{ INSTALL_USER }}"
+    mode: 0777
+
+- name: wait for {{ MOUNT_DISK }} device to become available
+  # in some cases, the volume attachments to the VMs happen after other initializaiton code only
+  wait_for:
+    path: "{{ MOUNT_DISK }}"
+    state: present
+    timeout: 300
+    sleep: 1
+
+- name: Ensure that the primary partition is present on the new disk
+  parted:
+    device: "{{ MOUNT_DISK }}"
+    number: 1
+    state: present
+
+- name: check for {{ MOUNT_DISK }} device
+  stat:
+    path: "{{ MOUNT_DISK }}"
+  register: source_disk_stat
+
+- block:
+  - name: format new volume
+    filesystem:
+      fstype: xfs
+      dev: "{{ MOUNT_DISK }}"
+
+
+  - name: mount viya installation volume {{ MOUNT_DISK }} on {{ MOUNT_DIR }}
+    mount:
+      name: "{{ MOUNT_DIR }}"
+      src: "{{ MOUNT_DISK }}"
+      fstype: xfs
+      state: mounted
+
+  when: source_disk_stat.stat.exists == true
+
+
+
+
+

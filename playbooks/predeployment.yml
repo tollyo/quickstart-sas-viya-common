@@ -6,16 +6,20 @@
   become_user: root
   gather_facts: false
   roles:
-    - { role: predeployment/wait_for_viya_vms, tags: ["wait_for_viya_vms"] }
+    - role: predeployment/wait_for_viya_vms
+  tags:
+    - wait_for_viya_vms
 
 
 - name: Set up hosts routing
-  hosts: [all]
+  hosts: [sas-servers]
   become: yes
   become_user: root
   gather_facts: false
   roles:
-    - { role: predeployment/set_host_routing, tags: ["hostnames"] }
+    - role: predeployment/set_host_routing
+  tags:
+    - hostnames
 
 
 - name: Log into each VM once,to avoid "unknown host" interactive message
@@ -24,16 +28,9 @@
   become_user: "{{ INSTALL_USER }}"
   gather_facts: false
   roles:
-    - { role: predeployment/initialize_known_hosts, tags: ["initialize_known_hosts"] }
-
-
-- name: Wait for volume attachments
-  hosts: [AnsibleController]
-  become: yes
-  become_user: "{{ INSTALL_USER }}"
-  gather_facts: false
-  roles:
-    - { role: predeployment/wait_for_volume_attachments, tags: ["wait_for_volume_attachments"] }
+    - role: predeployment/initialize_known_hosts
+  tags:
+    - initialize_known_hosts
 
 
 - name: Create saswork dir
@@ -42,22 +39,55 @@
   become_user: root
   gather_facts: false
   roles:
-    - { role: predeployment/create_saswork_dir, tags: ["create_saswork_dir"] }
+    - role: predeployment/create_saswork_dir
+  tags:
+    - create_saswork_dir
 
-
-- name: Mount /opt drive
-  hosts: [NeedMountOptDrive]
+- name: Mount sas install dir
+  hosts: [NeedMountSASInstallDrive]
   become: yes
   become_user: root
   gather_facts: false
   roles:
-    - { role: predeployment/mount_opt_drive, tags: ["mount_opt_drive"] }
+    - role: predeployment/mount_disk
+      when: SAS_INSTALL_DISK | default()
+  tags:
+    - mount_sas_install_dir
+  vars:
+    - MOUNT_DIR: "{{ SAS_INSTALL_DIR }}"
+    - MOUNT_DISK: "{{ SAS_INSTALL_DISK }}"
+#  tasks:
+#    - debug: var=vars
+
+- name: Mount userlib dir
+  hosts: [NeedMountUserlibDrive]
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - role: predeployment/mount_disk
+      when: USERLIB_DISK | default()
+  tags:
+    - mount_userlib_dir
+  vars:
+    - MOUNT_DIR: "{{ USERLIB_DIR }}"
+    - MOUNT_DISK: "{{ USERLIB_DISK }}"
 
 
-- name: Mount cas cache
+- name: Mount cas cache dir
   hosts: [CASControllerServer]
   become: yes
   become_user: root
   gather_facts: false
   roles:
-    - { role: predeployment/mount_cascache, tags: ["mount_cascache"] }
+    - role: predeployment/mount_cascache
+      # if no CASCACHE_DISK is given we assume emphemeral drives
+      when: CASCACHE_DISK | default() == ""
+    - role: predeployment/mount_disk
+      # if CASCACHE_DISK is set, we mount it as usual
+      when: CASCACHE_DISK | default()
+  tags:
+    - mount_cascache
+  vars:
+    - MOUNT_DIR: "{{ CASCACHE_DIR }}"
+    - MOUNT_DISK: "{{ CASCACHE_DISK }}"

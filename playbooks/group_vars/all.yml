@@ -1,11 +1,17 @@
 ---
 INSTALL_DIR: "/sas/install"
 NFS_SHARE_DIR: "{{ INSTALL_DIR }}/nfs"
+SCRIPTS_DIR: "{{ INSTALL_DIR }}/scripts"
+PLAYBOOKS_DIR: "{{ INSTALL_DIR }}/playbooks"
 ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
 READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
-LOGS_DIR: "{{ INSTALL_DIR }}/logs"
-SCRIPTS_DIR: "/sas/install/scripts"
-SASWORK_DIR: "/sastmp/saswork"
 
+LOGS_DIR: "/var/log/sas/install"
+
+
+SASWORK_DIR: "/sastmp/saswork"
+SAS_INSTALL_DIR: "/opt/sas"
+USERLIB_DIR: "/opt/sas/viya/config/data/cas"
+CASCACHE_DIR: "/sastmp/cascache"
 
 TEMPORARY_HOSTNAME_FILE: "/tmp/hostnames.txt"
