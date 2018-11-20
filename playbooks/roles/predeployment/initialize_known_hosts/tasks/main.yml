@@ -5,7 +5,9 @@
   # That seeds that hosts ~/.ssh/known_hosts file.
   # All subsequent ssh attempts will then not get the "unknown host" interactive message
   # That is primarily as a convenience for admin tasks later on
-  shell: "ssh -o StrictHostKeyChecking=no {{ item }} exit"
+  shell: |
+    ssh -o StrictHostKeyChecking=no {{ item }} exit
+    ssh -o StrictHostKeyChecking=no {{ item }}.viya.sas exit
   with_items: "{{ groups['sas-servers'] }}"
   tags:
     - seedknownhosts

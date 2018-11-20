@@ -2,8 +2,8 @@
 
 - name: Wait for Viya VMs to be ready
   hosts: [AnsibleController]
-  become: yes
   become_user: root
+  become: yes
   gather_facts: false
   roles:
     - role: predeployment/wait_for_viya_vms
@@ -13,19 +13,17 @@
 
 - name: Set up hosts routing
   hosts: [sas-servers]
-  become: yes
   become_user: root
+  become: yes
   gather_facts: false
   roles:
     - role: predeployment/set_host_routing
   tags:
-    - hostnames
+    - set_host_routing
 
 
 - name: Log into each VM once,to avoid "unknown host" interactive message
   hosts: [AnsibleController]
-  become: yes
-  become_user: "{{ INSTALL_USER }}"
   gather_facts: false
   roles:
     - role: predeployment/initialize_known_hosts
@@ -35,9 +33,9 @@
 
 - name: Create saswork dir
   hosts: [ProgrammingServicesServers]
-  become: yes
   become_user: root
-  gather_facts: false
+  become: yes
+  gather_facts: true
   roles:
     - role: predeployment/create_saswork_dir
   tags:
@@ -45,9 +43,9 @@
 
 - name: Mount sas install dir
   hosts: [NeedMountSASInstallDrive]
-  become: yes
   become_user: root
-  gather_facts: false
+  become: yes
+  gather_facts: true
   roles:
     - role: predeployment/mount_disk
       when: SAS_INSTALL_DISK | default()
@@ -56,14 +54,13 @@
   vars:
     - MOUNT_DIR: "{{ SAS_INSTALL_DIR }}"
     - MOUNT_DISK: "{{ SAS_INSTALL_DISK }}"
-#  tasks:
-#    - debug: var=vars
+
 
 - name: Mount userlib dir
   hosts: [NeedMountUserlibDrive]
-  become: yes
   become_user: root
-  gather_facts: false
+  become: yes
+  gather_facts: true
   roles:
     - role: predeployment/mount_disk
       when: USERLIB_DISK | default()
@@ -76,9 +73,9 @@
 
 - name: Mount cas cache dir
   hosts: [CASControllerServer]
-  become: yes
   become_user: root
-  gather_facts: false
+  become: yes
+  gather_facts: true
   roles:
     - role: predeployment/mount_cascache
       # if no CASCACHE_DISK is given we assume emphemeral drives

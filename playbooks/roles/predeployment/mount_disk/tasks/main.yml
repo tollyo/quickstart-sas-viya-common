@@ -4,8 +4,8 @@
   file:
     path: "{{ MOUNT_DIR }}"
     state: directory
-    owner: "{{ INSTALL_USER }}"
-    group: "{{ INSTALL_USER }}"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
     mode: 0777
 
 - name: wait for {{ MOUNT_DISK }} device to become available

@@ -11,7 +11,10 @@ LOGS_DIR: "/var/log/sas/install"
 
 SASWORK_DIR: "/sastmp/saswork"
 SAS_INSTALL_DIR: "/opt/sas"
+SAS_INSTALL_DISK: ""
 USERLIB_DIR: "/opt/sas/viya/config/data/cas"
+USERLIB_DISK: ""
 CASCACHE_DIR: "/sastmp/cascache"
+CASCACHE_DISK: ""
 
 TEMPORARY_HOSTNAME_FILE: "/tmp/hostnames.txt"
