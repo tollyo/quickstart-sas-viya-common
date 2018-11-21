@@ -1,0 +1,28 @@
+---
+
+- name: Perform common tasks on all machines
+  hosts: openldapall
+  become: yes
+  become_user: root
+  roles:
+    - role: openldap/openldapcommon
+  tags:
+    - openldapcommon
+
+- name: Install OpenLDAP Server on a single machine
+  hosts: OpenLdapServer
+  become: yes
+  become_user: root
+  roles:
+    - role: openldap/openldapserver
+  tags:
+    - openldapserver
+
+- name: Install KDC/LDAP Client on one or more machines
+  hosts: OpenLdapClients
+  become: yes
+  become_user: root
+  roles:
+     - role: openldap/openldapclients
+  tags:
+     - openldapclients
