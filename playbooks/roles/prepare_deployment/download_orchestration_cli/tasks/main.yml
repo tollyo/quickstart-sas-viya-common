@@ -1,0 +1,21 @@
+---
+
+- set_fact:
+     tempfile: "/tmp/sas-orchestration-cli.tgz"
+
+- name: download sas-orchestration cli
+  get_url:
+    url: "{{ SAS_ORCHESTRATION_CLI_URL }}"
+    dest: "{{ tempfile }}"
+
+- name: untar sas-orchestration cli
+  unarchive:
+    src: "{{ tempfile }}"
+    dest: "{{ UTILITIES_DIR }}"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: 0755
+
+- name: clean up
+  file:
+     path: "{{ tempfile }}"

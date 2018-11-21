@@ -24,7 +24,7 @@ done <<< "$(find . -type f -regextype posix-extended \
                ! -regex "(^\./|.*/)\..*" \
                ! -path "./${BASH_SOURCE[0]}" \
                ! -path "./${OUTPUT_FILE}" \
-               ! -regex "./[LNR].*"\
+               ! -regex "(./|.*/)[LNR].*"\
                ! -path "./doc/*"\
                ! -path "./images/*"\
                ! -path "./ci*/*"\

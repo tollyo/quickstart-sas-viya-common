@@ -10,7 +10,7 @@ ANSIBLE_KEY_DIR=${NFS_SHARE_DIR}/ansible_key
 READINESS_FLAGS_DIR=${NFS_SHARE_DIR}/readiness_flags
 LOGS_DIR=/var/log/sas/install
 INSTALL_USER=$(whoami)
-
+UTILITIES_DIR="${INSTALL_DIR}/bin"
 #
 # create directories
 #
@@ -34,6 +34,9 @@ sudo mkdir -p ${LOGS_DIR}
 sudo chmod 755 ${LOGS_DIR}
 sudo chown ${INSTALL_USER}:${INSTALL_USER} ${LOGS_DIR}
 
+sudo mkdir -p ${UTILITIES_DIR}
+sudo chmod 755 ${UTILITIES_DIR}
+sudo chown ${INSTALL_USER}:${INSTALL_USER} ${UTILITIES_DIR}
 
 #
 # Install or upgrade java to 1.8

@@ -144,27 +144,27 @@ TODO
     
 ### Step 1 Additional preparatory steps - driven by ansible from the ansible controller  
 
-The playbook `playbooks\predeployment.yml` does additional steps needed before installing SAS, including
+The playbook `playbooks\prepare_nodes.yml` does additional steps needed before installing SAS, including
 - host routing
 - volume attachments
 - setting up directories and users 
 
-Logs are routed to `/var/log/sas/install/predeployment.yml`
+Logs are routed to `/var/log/sas/install/prepare_nodes.yml`
  
 Example invocation:
 ``` 
-  export ANSIBLE_LOG_PATH=/var/log/sas/install/predeployment.log
+  export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_nodes.log
   export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
-  ansible-playbook -v /sas/install/common/playbooks/predeployment.yml \
+  ansible-playbook -v /sas/install/common/playbooks/prepare_nodes.yml \
                    -e "USERLIB_DISK=/dev/xvdl" \
                    -e "SAS_INSTALL_DISK=/dev/xvdg" \
                    -e "CASCACHE_DISK="
 ```
 
-NB: All roles executed via the ````predeployment.yml```` playbook are tagged with their name. 
-E.g. if you want to run ````predeployment.yml```` and exclude ````set_host_routing````, invoke it with
+NB: All roles executed via the ````prepare_nodes.yml```` playbook are tagged with their name. 
+E.g. if you want to run ````prepare_nodes.yml```` and exclude ````set_host_routing````, invoke it with
 ````
-ansible-playbook predeployment.yml --skip-tags set_host_routing
+ansible-playbook prepare_nodes.yml --skip-tags set_host_routing
 ````
 
 1. __Wait for all SAS VMs to be ready__
@@ -172,7 +172,7 @@ ansible-playbook predeployment.yml --skip-tags set_host_routing
     Waits for all hosts to post their readiness flag in the ````/sas/install/nfs/readiness_flags```` directory.
 
     ```    
-    Role: predeployment/wait_for_viya_vms
+    Role: prepare_nodes/wait_for_viya_vms
     ```
 
 1. __Set up hosts routing__
@@ -183,7 +183,7 @@ ansible-playbook predeployment.yml --skip-tags set_host_routing
     (Reminder: to skip this role, add ````--skip-tags set_host_routing``` to the playbook invocation)
 
     ```
-    Role: predeployment/set_host_routing
+    Role: prepare_nodes/set_host_routing
     ```
 
 1. __Create SASWORK dir__
@@ -194,7 +194,7 @@ ansible-playbook predeployment.yml --skip-tags set_host_routing
     Inputs: 
        group_vars: 
          SASWORK_DIR: "/sastmp/saswork"     
-    Role: predeployment/create_saswork_dir
+    Role: prepare_nodes/create_saswork_dir
     ```
     
 1. __Mount disks__
@@ -210,7 +210,7 @@ ansible-playbook predeployment.yml --skip-tags set_host_routing
          SAS_INSTALL_DIR: "/opt/sas"
          USERLIB_DIR: "/opt/sas/viya/config/data/cas"       
        extra_vars: SAS_INSTALL_DISK, USERLIB_DISK
-    Role: predeployment/create_saswork_dir
+    Role: prepare_nodes/create_saswork_dir
     ```
     
 1. __Mount disks for CAS Cache__
@@ -224,9 +224,9 @@ ansible-playbook predeployment.yml --skip-tags set_host_routing
        group_vars: 
          CASCACHE_DIR: "/sastmp/cascache"
        extra_vars: CASCACHE_DISK
-    Role: predeployment/mount_disk
+    Role: prepare_nodes/mount_disk
           If no disk is passed in it assumes ephemeral disks or no mount and executes
-          predeployment/mount_cascache
+          prepare_nodes/mount_cascache
     ```
     
     
@@ -272,3 +272,20 @@ Example invocation (from aws cfn-init):
       ADMINPASS: !Base64
         "Ref": SASAdminPass
 ```    
+
+### Step 3 Prepare Deployment files
+
+The playbook `playbooks\prepare_deployment.yml` does additional steps needed before installing SAS, including
+- download sas-orchestration
+- build playbook from SOE file
+- modify inventory.ini and vars.yml
+
+
+Logs are routed to `/var/log/sas/install/prepare_deployment.yml`
+ 
+Example invocation:
+``` 
+  export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_deployment.log
+  export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
+  ansible-playbook -v /sas/install/common/playbooks/prepare_deployment.yml 
+```

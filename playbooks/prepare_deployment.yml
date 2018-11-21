@@ -1,0 +1,10 @@
+---
+
+
+- name: Download sas-orchestration clie
+  hosts: [AnsibleController]
+  gather_facts: true
+  roles:
+    - role: prepare_deployment/download_orchestration_cli
+  tags:
+    - download_orchestration_cli

@@ -3,11 +3,11 @@ INSTALL_DIR: "/sas/install"
 NFS_SHARE_DIR: "{{ INSTALL_DIR }}/nfs"
 SCRIPTS_DIR: "{{ INSTALL_DIR }}/scripts"
 PLAYBOOKS_DIR: "{{ INSTALL_DIR }}/playbooks"
+UTILITIES_DIR: "{{ INSTALL_DIR }}/bin"
 ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
 READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
 
 LOGS_DIR: "/var/log/sas/install"
-
 
 SASWORK_DIR: "/sastmp/saswork"
 SAS_INSTALL_DIR: "/opt/sas"
@@ -17,6 +17,5 @@ USERLIB_DISK: ""
 CASCACHE_DIR: "/sastmp/cascache"
 CASCACHE_DISK: ""
 
-TEMPORARY_HOSTNAME_FILE: "/tmp/hostnames.txt"
 
-
+SAS_ORCHESTRATION_CLI_URL: "https://support.sas.com/installation/viya/34/sas-orchestration-cli/lax/sas-orchestration-linux.tgz"

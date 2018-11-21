@@ -1,5 +1,8 @@
 ---
 
+- set_fact:
+     TEMPORARY_HOSTNAME_FILE: "/tmp/hostnames.txt"
+
 - block:
   - name: create /etc/hosts lines for viya hosts
     lineinfile:
