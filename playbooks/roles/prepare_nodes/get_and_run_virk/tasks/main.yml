@@ -14,7 +14,7 @@
 - name: run virk
   shell: |
     export ANSIBLE_CONFIG={{ INSTALL_DIR }}/common/playbooks/ansible.cfg
-    ansible-playbook {{ VIRK_DIR }}/playbooks/pre-install-playbook/viya_pre_install_playbook.yml \
+    ansible-playbook -v {{ VIRK_DIR }}/playbooks/pre-install-playbook/viya_pre_install_playbook.yml \
        -e "use_pause=false" \
        --skip-tags skipmemfail,skipcoresfail,skipstoragefail,skipnicssfail,bandwidth
 

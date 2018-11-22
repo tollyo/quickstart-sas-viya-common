@@ -17,6 +17,9 @@ USERLIB_DISK: ""
 CASCACHE_DIR: "/sastmp/cascache"
 CASCACHE_DISK: ""
 
+REPOSITORY_MIRROR: ""
+MIRROR_DIR: "{{ SAS_INSTALL_DIR }}/mirror"
+
 
 SAS_ORCHESTRATION_CLI_URL: "https://support.sas.com/installation/viya/34/sas-orchestration-cli/lax/sas-orchestration-linux.tgz"
 VIRK_URL: "https://github.com/sassoftware/virk"

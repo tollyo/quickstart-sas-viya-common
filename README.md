@@ -118,7 +118,10 @@ TODO
     ```
 
 1. __SAS VMs setup (optional)__
- 
+
+    CLOUD SPECIFIC implementation
+
+
    - yum installs
    - security config
    - ...
@@ -126,6 +129,9 @@ TODO
    Should be called inline in VM bootstrap ("user-data" section or equivalent)
  
 1. __SAS VMs prereqs__
+
+    CLOUD SPECIFIC implementation
+
     - mount nfs share
     - set ansible ssh key
     - post readiness flag
@@ -135,6 +141,9 @@ TODO
     ```
 
 1. __Ansible controller download project files__
+
+    CLOUD SPECIFIC implementation
+
     download all the additional scripts and playbooks need for the deployment. 
     This part must be implemented per cloud (e.g. AWS used the aws cli do download the project files from s3, while Azure used the azure cli, etc.)
     ```
@@ -215,6 +224,9 @@ ansible-playbook prepare_nodes.yml --skip-tags set_host_routing
     
 1. __Mount disks for CAS Cache__
 
+    CLOUD SPECIFIC implementation
+
+
     Mounts disks on the SAS VMs for the SAS Installation directory and user library
     
     ```
@@ -227,6 +239,23 @@ ansible-playbook prepare_nodes.yml --skip-tags set_host_routing
     Role: prepare_nodes/mount_disk
           If no disk is passed in it assumes ephemeral disks or no mount and executes
           prepare_nodes/mount_cascache
+    ```
+    
+1. __Download and run VIRK predeployment playbook__
+
+    Run the VIRK pre-install playbook to cover most of the Viya Deployment Guide prereqs in one fell swoop.
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+         VIRK_COMMIT_ID: 
+         VIRK_URL:
+         VIRK_DIR:
+       extra_vars: VIYA_VERSION
+    Role: prepare_nodes/get_and_run_virk
+
     ```
     
     
@@ -273,10 +302,11 @@ Example invocation (from aws cfn-init):
         "Ref": SASAdminPass
 ```    
 
-### Step 3 Prepare Deployment files
+### Step 3 Prepare Deployment 
 
 The playbook `playbooks\prepare_deployment.yml` does additional steps needed before installing SAS, including
 - download sas-orchestration
+- set up access to deployment mirror (optional)
 - build playbook from SOE file
 - modify inventory.ini and vars.yml
 
@@ -289,3 +319,41 @@ Example invocation:
   export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
   ansible-playbook -v /sas/install/common/playbooks/prepare_deployment.yml 
 ```
+
+1. __Download sas-orchestration cli__
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+         SAS_ORCHESTRATION_CLI_URL: 
+         UTILITIES_DIR:
+    Role: prepare_deployment/download_orchestration_cli
+
+    ```
+
+1. __Access Mirror__
+
+    CLOUD SPECIFIC implementation
+
+    Provides access to SAS repository mirror files
+    The repository mirror needs to have been created earlier.
+    
+    For AWS, we do the following 
+    - create mirror directory
+    - downloads mirror files from s3
+    - set up web server  
+
+    ```
+    Host Groups:
+       MirrorServer
+    Inputs: 
+       group_vars: 
+          MIRROR_DIR: "{{ SAS_INSTALL_DIR }}/mirror"
+       extra_vars:
+          REPOSTORY_MIRROR
+
+    Role: prepare_deployment/deployment_mirror
+
+    ```
