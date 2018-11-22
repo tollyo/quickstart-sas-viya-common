@@ -12,7 +12,7 @@
 
 
 - name: Set up hosts routing
-  hosts: [sas-servers]
+  hosts: [sas-all]
   become_user: root
   become: yes
   gather_facts: false
@@ -88,6 +88,14 @@
   vars:
     - MOUNT_DIR: "{{ CASCACHE_DIR }}"
     - MOUNT_DISK: "{{ CASCACHE_DISK }}"
+
+- name: Get VIRK pre-install playbook
+  hosts: [AnsibleController]
+  gather_facts: true
+  roles:
+    - role: prepare_nodes/get_and_run_virk
+  tags:
+    - get_and_run_virk
 
 
 

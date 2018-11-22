@@ -19,3 +19,10 @@ CASCACHE_DISK: ""
 
 
 SAS_ORCHESTRATION_CLI_URL: "https://support.sas.com/installation/viya/34/sas-orchestration-cli/lax/sas-orchestration-linux.tgz"
+VIRK_URL: "https://github.com/sassoftware/virk"
+VIRK_DIR: "{{ INSTALL_DIR }}/virk"
+VIYA_VERSION: "3.4"
+VIRK_COMMIT_ID:
+  "3.3": "e210c8d"
+  "3.4": "fec76e5"
+

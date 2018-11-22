@@ -1,0 +1,22 @@
+---
+
+- name: ensure that Git is installed
+  yum: name={{ item }} state=latest
+  with_items:
+  - git
+
+- name: clone virk
+  git:
+    repo: "{{ VIRK_URL }}"
+    dest: "{{ VIRK_DIR }}"
+    version: "{{VIRK_COMMIT_ID[VIYA_VERSION]}}"
+
+- name: run virk
+  shell: |
+    export ANSIBLE_CONFIG={{ INSTALL_DIR }}/common/playbooks/ansible.cfg
+    ansible-playbook {{ VIRK_DIR }}/playbooks/pre-install-playbook/viya_pre_install_playbook.yml \
+       -e "use_pause=false" \
+       --skip-tags skipmemfail,skipcoresfail,skipstoragefail,skipnicssfail,bandwidth
+
+
+
