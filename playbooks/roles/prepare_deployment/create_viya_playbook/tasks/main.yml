@@ -1,0 +1,32 @@
+---
+
+- set_fact:
+    TEMPORARY_TGZ_FILE: "/tmp/SAS_Viya_playbook.tgz"
+
+- name: set mirror option
+  set_fact:
+    MIRROR_OPT: " --repository-warehouse {{ MIRROR_URL }}"
+  when: DEPLOYMENT_MIRROR | default()
+
+
+- name: build playbook
+  shell: |
+   {{ UTILITIES_DIR }}/sas-orchestration build --input {{ TEMPORARY_SOE_FILE }} {{ MIRROR_OPT }}
+  args:
+   chdir: /tmp
+
+- name: untar playbook
+  unarchive:
+    src: "{{ TEMPORARY_TGZ_FILE }}"
+    dest: "{{ INSTALL_DIR }}"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: 0755
+
+- name: clean up
+  file:
+     path: "{{ item }}"
+     state: absent
+  with_items:
+     - "{{ TEMPORARY_SOE_FILE }}"
+

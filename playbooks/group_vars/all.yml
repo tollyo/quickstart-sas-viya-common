@@ -3,6 +3,7 @@ INSTALL_DIR: "/sas/install"
 NFS_SHARE_DIR: "{{ INSTALL_DIR }}/nfs"
 SCRIPTS_DIR: "{{ INSTALL_DIR }}/scripts"
 PLAYBOOKS_DIR: "{{ INSTALL_DIR }}/playbooks"
+VIYA_PLAYBOOK_DIR: "{{ INSTALL_DIR }}/sas_viya_playbook"
 UTILITIES_DIR: "{{ INSTALL_DIR }}/bin"
 ANSIBLE_KEY_DIR: "{{ NFS_SHARE_DIR }}/ansible_key"
 READINESS_FLAGS_DIR: "{{ NFS_SHARE_DIR }}/readiness_flags"
@@ -17,8 +18,13 @@ USERLIB_DISK: ""
 CASCACHE_DIR: "/sastmp/cascache"
 CASCACHE_DISK: ""
 
-REPOSITORY_MIRROR: ""
+DEPLOYMENT_MIRROR: ""
 MIRROR_DIR: "{{ SAS_INSTALL_DIR }}/mirror"
+MIRROR_URL: "http://{{ hostvars[groups['MirrorServer'][0]]['ansible_fqdn'] }}:8008/repo_mirror"
+MIRROR_OPT: ""
+DEPLOYTMENT_DATA_LOCATION: ""
+TEMPORARY_SOE_FILE: "/tmp/SAS_Viya_playbook.tgz"
+
 
 
 SAS_ORCHESTRATION_CLI_URL: "https://support.sas.com/installation/viya/34/sas-orchestration-cli/lax/sas-orchestration-linux.tgz"

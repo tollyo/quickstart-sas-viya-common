@@ -317,7 +317,9 @@ Example invocation:
 ``` 
   export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_deployment.log
   export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
-  ansible-playbook -v /sas/install/common/playbooks/prepare_deployment.yml 
+  ansible-playbook -v /sas/install/common/playbooks/prepare_deployment.yml \
+                      -e "DEPLOYMENT_MIRROR=${DeploymentMirror}" \
+                      -e "DEPLOYMENT_DATA_LOCATION=${DeploymentDataLocation}"
 ```
 
 1. __Download sas-orchestration cli__
@@ -352,8 +354,46 @@ Example invocation:
        group_vars: 
           MIRROR_DIR: "{{ SAS_INSTALL_DIR }}/mirror"
        extra_vars:
-          REPOSTORY_MIRROR
+          DEPLOYMENT_MIRROR
 
     Role: prepare_deployment/deployment_mirror
+
+    ```
+
+1. __Download SOE file__
+
+    CLOUD SPECIFIC implementation
+
+    in AWS the SOE file, DEPLOYMENT_DATA_LOCATION, is stored in S3
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+          TEMPORARY_SOE_FILE    
+       extra_vars:
+          DEPLOYMENT_DATA_LOCATION
+
+    Role: prepare_deployment/download_soe_file
+
+    ```
+1. __Create viya playbook__
+
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+          MIRROR_URL:
+          MIRROR_OPT:
+          INSTALL_DIR:
+          UTILTIES_DIR: 
+          TEMPORARY_SOE_FILE:
+       extra_vars:
+          DEPLOYMENT_MIRROR (optional)
+
+    Role: prepare_deployment/create_viya_playbook
 
     ```

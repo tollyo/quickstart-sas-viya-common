@@ -19,3 +19,4 @@
 - name: clean up
   file:
      path: "{{ tempfile }}"
+     state: absent

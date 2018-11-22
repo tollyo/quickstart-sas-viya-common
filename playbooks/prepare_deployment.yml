@@ -19,3 +19,17 @@
   tags:
     - deployment_mirror
 
+- name: Download SOE file
+  hosts: [AnsibleController]
+  roles:
+    - role: prepare_deployment/download_soe_file
+  tags:
+    - download_soe_file
+
+- name: Create Viya playbook
+  hosts: [AnsibleController]
+  roles:
+    - role: prepare_deployment/create_viya_playbook
+  tags:
+    - create_viya_playbook
+
