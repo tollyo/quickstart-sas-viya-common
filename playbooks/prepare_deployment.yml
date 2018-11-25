@@ -33,3 +33,24 @@
   tags:
     - create_viya_playbook
 
+- name: Update vars.yml
+  hosts: [AnsibleController]
+  roles:
+    - role: prepare_deployment/update_vars
+  tags:
+    - update_vars
+
+- name: Update sitedefault.yml
+  hosts: [AnsibleController]
+  roles:
+    - role: prepare_deployment/update_sitedefault
+  tags:
+    - update_sitedefault
+
+- name: Update inventory.yml
+  hosts: [AnsibleController]
+  roles:
+    - role: prepare_deployment/update_inventory
+  tags:
+    - update_inventory
+

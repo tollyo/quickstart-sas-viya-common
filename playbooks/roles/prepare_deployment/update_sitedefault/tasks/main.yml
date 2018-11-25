@@ -1,0 +1,72 @@
+---
+
+- set_fact:
+    sitedefault_file: "{{ playbook_dir }}/sitedefault.yml"
+
+- name: Copy from Openldap location if it exists
+  copy:
+    src: "{{ sitedefault_file }}"
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+  when: sitedefault_file | is_file
+
+- name: Create sitedefault file, if it does not exist already
+  file:
+    path: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    state: touch
+
+- name: add config header line to sitedefault.yml if needed
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    state: present
+    insertbefore: BOF
+    line: "config:"
+
+- name: add applicaton header line to sitedefault.yml if needed
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    state: present
+    insertafter: '^config:'
+    line: '     application:'
+
+- name: set sharedVault backup location in sitedefault.yml
+  blockinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    marker: '# {mark} set sharedVault'
+    insertafter: 'application:'
+    block: |2
+               sas.deploymentbackup:
+                   sharedVault: /backups
+
+- name: set mail host and enable mail health check in sitedefault.yml
+  blockinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    marker: '# {mark} set mail'
+    insertafter: 'application:'
+    block: |2
+               management.health.mail:
+                   enabled: true
+               sas.mail:
+                   host: localhost
+
+- name: set renderer baseUrl in sitedefault.yml
+  blockinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    marker: '# {mark} set renderer baseUrl'
+    insertafter: 'application:'
+    block: |2
+               sas.reportrenderer.properties:
+                   custom:
+                       baseUrl: http://{{ hostvars[groups['ViyaServicesServers'][0]]['ansible_fqdn'] }}
+
+- name: set sasboot password in sitedefault.yml
+  blockinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    marker: '# {mark} set sasboot pw'
+    insertafter: 'application:'
+    block: |2
+               sas.logon.initial.password: '{{ ADMINPASS }}'
+
+- name: set sitedefault permissions because it now contains a password
+  file:
+    path: "{{ VIYA_PLAYBOOK_DIR }}/roles/consul/files/sitedefault.yml"
+    mode: 0600

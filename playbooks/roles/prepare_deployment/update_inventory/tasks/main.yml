@@ -1,0 +1,150 @@
+---
+
+# Host definitions
+- name: remove default deployTarget
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: 'ansible_host'
+    state: absent
+
+- name: insert host definitions
+  blockinfile:
+    insertbefore: BOF
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    block: "{{ lookup('file', 'inventory.ini') }}"
+    marker: "# {mark} ADD HOST DEFINITIONS"
+
+# Programming Services
+- name: Programming - ComputeServer
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[ComputeServer\]\ndeployTarget'
+    replace: '[ComputeServer]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - programming
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[programming\]\ndeployTarget'
+    replace: '[programming]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - spre
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[spre\]\ndeployTarget'
+    replace: '[spre]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - CommandLine
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[CommandLine\]\ndeployTarget'
+    replace: '[CommandLine]\n{{ groups["sas-servers"]|unique|join("\n") }}'
+
+- name: Programming - connect
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[connect\]\ndeployTarget'
+    replace: '[connect]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - pcfile
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[pcfile\]\ndeployTarget'
+    replace: '[pcfile]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - platform
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[platform\]\ndeployTarget'
+    replace: '[platform]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - Operations
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[Operations\]\ndeployTarget'
+    replace: '[Operations]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - psqllib
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[psqllib\]\ndeployTarget'
+    replace: '[psqllib]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - psqllib1
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[psqllib1\]\ndeployTarget'
+    replace: '[psqllib1]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - psqlodbc
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[psqlodbc\]\ndeployTarget'
+    replace: '[psqlodbc]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Programming - psqlodbc1
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[psqlodbc1\]\ndeployTarget'
+    replace: '[psqlodbc1]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+
+# Stateful Services
+- name: Stateful - configuratn
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[configuratn]\\ndeployTarget'
+    replace: '[configuratn]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Stateful -pgpoolc
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[pgpoolc\]\ndeployTarget'
+    replace: '[pgpoolc]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Stateful -rabbitmq
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[rabbitmq\]\ndeployTarget'
+    replace: '[rabbitmq]\n{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+
+- name: Stateful -sasdatasvrc
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[sasdatasvrc\]\ndeployTarget'
+    replace: '[sasdatasvrc]\n{{ groups["sas-services"]|unique|join("\n") }}'
+
+# multiple
+- name: Multiple - CoreServices
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[CoreServices\]\ndeployTarget'
+    replace: '[CoreServices]\n{{ groups["sas-services"]|unique|join("\n") }}'
+
+- name: Multiple - Consul
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[Consul\]\ndeployTarget'
+    replace: '[Consul]\n{{ groups["sas-services"]|unique|join("\n") }}'
+
+
+- name: Multiple - httpproxy
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[httpproxy\]\ndeployTarget'
+    replace: '[httpproxy]\n{{ groups["sas-services"]|unique|join("\n") }}'
+
+# CAS
+- name: Set CAS controller target
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[sas-casserver-primary\]\ndeployTarget'
+    replace: '[sas-casserver-primary]\ncontroller'
+
+
+# Everything else
+- name: All other services
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^deployTarget'
+    replace: '{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
+    backup: yes

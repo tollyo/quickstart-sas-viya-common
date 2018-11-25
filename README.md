@@ -319,7 +319,8 @@ Example invocation:
   export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
   ansible-playbook -v /sas/install/common/playbooks/prepare_deployment.yml \
                       -e "DEPLOYMENT_MIRROR=${DeploymentMirror}" \
-                      -e "DEPLOYMENT_DATA_LOCATION=${DeploymentDataLocation}"
+                      -e "DEPLOYMENT_DATA_LOCATION=${DeploymentDataLocation}" \
+                      -e "ADMINPASS=${SASAdminPass}"
 ```
 
 1. __Download sas-orchestration cli__
@@ -352,7 +353,7 @@ Example invocation:
        MirrorServer
     Inputs: 
        group_vars: 
-          MIRROR_DIR: "{{ SAS_INSTALL_DIR }}/mirror"
+          MIRROR_DIR: 
        extra_vars:
           DEPLOYMENT_MIRROR
 
@@ -380,6 +381,7 @@ Example invocation:
     ```
 1. __Create viya playbook__
 
+    runs the `sas-orchestration` cli against the soe file 
 
     ```
     Host Groups:
@@ -397,3 +399,58 @@ Example invocation:
     Role: prepare_deployment/create_viya_playbook
 
     ```
+1. __Modify sas_viya_playbook/vars.yml__
+
+    Makes any topology related changes in `vars.yml`.
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+          VIYA_PLAYBOOK_DIR:
+          SAS_INSTALL_DIR:
+          CASCACHE_DIR:
+          SASWORK_DIR:
+       other:
+          PostgresPrimaryServer host group
+
+    Role: prepare_deployment/update_vars
+
+    ```
+
+1. __Modify sitedefault.yml__
+
+    Copies `sitedefault.yml` from the openldap playbook (if that was run) or else creates it.
+    Makes any topology related changes in `sitedefault.yml`.
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+          VIYA_PLAYBOOK_DIR:
+          SAS_INSTALL_DIR:
+       extra_vars:
+          ADMINPASS
+
+    Role: prepare_deployment/update_sitedefault
+
+    ```
+
+1. __Modify inventory__
+
+    ```
+    Host Groups:
+       AnsibleController
+    Inputs: 
+       group_vars: 
+          VIYA_PLAYBOOK_DIR:
+          SAS_INSTALL_DIR:
+       extra_vars:
+          ADMINPASS
+
+    Role: prepare_deployment/update_inventory
+
+    ```
+

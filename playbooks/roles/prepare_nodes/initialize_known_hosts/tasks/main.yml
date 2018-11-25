@@ -8,6 +8,6 @@
   shell: |
     ssh -o StrictHostKeyChecking=no {{ item }} exit
     ssh -o StrictHostKeyChecking=no {{ item }}.viya.sas exit
-  with_items: "{{ groups['sas-all'] }}"
+  with_items: "{{ groups['sas-servers'] }}"
   tags:
     - seedknownhosts

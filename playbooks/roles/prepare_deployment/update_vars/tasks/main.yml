@@ -1,0 +1,79 @@
+---
+
+- name: change cas cache location
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp: "CAS_DISK_CACHE:"
+    line: "     CAS_DISK_CACHE: {{ CASCACHE_DIR }}"
+
+
+- name: change saswork location
+  blockinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    insertafter: EOF
+    marker: "# {mark} add saswork location"
+    block: |
+      SASV9_CONFIGURATION:
+        1: '/* this will send the SASWORK to the /sastmp location */'
+        2: 'WORK {{ SASWORK_DIR }}'
+
+- name: set SASStudio folder root (remove if it exists)
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp: "webdms.showSystemRoot:"
+    state: absent
+
+- name: set SASStudio folder root
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  'STUDIO_CONFIGURATION:\n  init:'
+    replace: 'STUDIO_CONFIGURATION:\n  init:\n    webdms.showSystemRoot: false'
+
+- name: set workspaceserver settings
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp: '#FOUNDATION_CONFIGURATION:'
+    replace: 'FOUNDATION_CONFIGURATION:'
+
+- name: set redshift access forwork spaceserver
+  blockinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    marker: '#{mark} add ws access to redshift'
+    insertafter: '^FOUNDATION_CONFIGURATION:'
+    block: |2
+        1: ODBCINI={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients/odbc.ini
+        2: ODBCINST={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients/odbcinst.ini
+        3: ODBCHOME={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients
+        4: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ODBCHOME/lib
+
+- name: set CAS Settings
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  '#CAS_SETTINGS:'
+    replace: 'CAS_SETTINGS:'
+
+- name: set ODBC home directory
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  '#1: ODBCHOME=.*'
+    replace: '1: ODBCHOME={{ SAS_INSTALL_DIR }}/viya/home/lib64/accessclients'
+
+- name: set ODBCINI
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  '#2: ODBCINI=.*'
+    replace: '2: ODBCINI=$ODBCHOME/odbc.ini'
+
+- name: set LD_LIBRARY_PATH
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  '#5: LD_LIBRARY_PATH=.*'
+    replace: '5: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ODBCHOME/lib'
+
+- name: set pg host
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  '\ \ deployTarget'
+    replace: '  {{ groups["PostgresPrimaryServer"]|first }}'
+    backup: yes
+

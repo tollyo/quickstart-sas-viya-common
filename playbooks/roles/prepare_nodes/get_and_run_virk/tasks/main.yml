@@ -10,6 +10,16 @@
     repo: "{{ VIRK_URL }}"
     dest: "{{ VIRK_DIR }}"
     version: "{{VIRK_COMMIT_ID[VIYA_VERSION]}}"
+    force: yes
+
+
+- name: change host name from sas-all to sas-servers
+  replace:
+    dest: "{{ VIRK_DIR }}/playbooks/pre-install-playbook/viya_pre_install_playbook.yml"
+    regexp:  'sas-all'
+    replace: 'sas-servers'
+
+
 
 - name: run virk
   shell: |

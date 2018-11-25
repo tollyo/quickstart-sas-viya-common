@@ -12,7 +12,7 @@
 
 
 - name: Set up hosts routing
-  hosts: [sas-all]
+  hosts: [sas-servers]
   become_user: root
   become: yes
   gather_facts: false
