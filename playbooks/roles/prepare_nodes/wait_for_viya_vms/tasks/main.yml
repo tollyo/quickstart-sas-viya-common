@@ -1,13 +1,16 @@
 ---
 
 - name: wait for VMs to be be ready
-  # loop for 5 minutes
+  # loop for 20 minutes
   # waiting for the viya VMs to post their file
   # into the readiness flags directory
+  # Note: this length of the timeout should be similar to any timeout you
+  #        might set for the resource creation for the SAS VMs in your iaas template
+
   wait_for:
     path: "{{ READINESS_FLAGS_DIR }}/{{ item }}"
     state: present
-    timeout: 300
+    timeout: 1200
     sleep: 1
   with_items: "{{ groups['sas-servers'] }}"
 

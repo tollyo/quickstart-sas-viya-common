@@ -1,0 +1,20 @@
+---
+
+- name: ensure that Git is installed
+  yum: name={{ item }} state=latest
+  with_items:
+  - git
+
+- name: clone virk
+  git:
+    repo: "{{ VIRK_URL }}"
+    dest: "{{ VIRK_DIR }}"
+    version: "{{VIRK_COMMIT_ID[VIYA_VERSION]}}"
+    force: yes
+
+
+
+
+
+
+

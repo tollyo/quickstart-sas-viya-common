@@ -6,6 +6,7 @@
     dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
     regexp: 'ansible_host'
     state: absent
+    backup: yes
 
 - name: insert host definitions
   blockinfile:
@@ -13,6 +14,19 @@
     dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
     block: "{{ lookup('file', 'inventory.ini') }}"
     marker: "# {mark} ADD HOST DEFINITIONS"
+
+- name: remove localhost references
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: 'localhost'
+    state: absent
+
+- name: remove ansible controller host group references
+  lineinfile:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '\[AnsibleController\]'
+    state: absent
+
 
 # Programming Services
 - name: Programming - ComputeServer
@@ -147,4 +161,4 @@
     dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
     regexp: '^deployTarget'
     replace: '{{ groups["ViyaServicesServers"]|unique|join("\n") }}'
-    backup: yes
+

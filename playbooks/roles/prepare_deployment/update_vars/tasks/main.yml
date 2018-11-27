@@ -5,6 +5,7 @@
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
     regexp: "CAS_DISK_CACHE:"
     line: "     CAS_DISK_CACHE: {{ CASCACHE_DIR }}"
+    backup: yes
 
 
 - name: change saswork location
@@ -75,5 +76,4 @@
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
     regexp:  '\ \ deployTarget'
     replace: '  {{ groups["PostgresPrimaryServer"]|first }}'
-    backup: yes
 
