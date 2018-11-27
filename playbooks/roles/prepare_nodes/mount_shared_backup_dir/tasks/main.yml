@@ -1,0 +1,40 @@
+---
+
+- name: create {{ BACKUP_DIR }} directory
+  file:
+    path: "{{ BACKUP_DIR }}"
+    state: directory
+    owner: "sas"
+    group: "sas"
+    mode: 0755
+
+- name: nfs setup - install nfs, autofs
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - nfs-utils
+    - autofs
+
+- name: define autofs config
+  lineinfile:
+    path: /etc/auto.master
+    create: true
+    state: present
+    line: "/- /etc/auto.backups"
+
+
+- name: define autofs mount
+  lineinfile:
+    path: /etc/auto.backups
+    create: true
+    state: present
+    line: "{{ BACKUP_DIR }} -rw,soft,uid=sas,gid=sas {{ hostvars[groups['SharedVaultServer'][0]]['ansible_fqdn'] }}:{{ BACKUP_NFS_DIR }}"
+
+
+- name: nfs setup - start autofs
+  service:
+    name: autofs
+    state: started
+    enabled: yes
+

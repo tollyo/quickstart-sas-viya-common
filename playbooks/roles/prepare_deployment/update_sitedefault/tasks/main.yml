@@ -35,7 +35,7 @@
     insertafter: 'application:'
     block: |2
                sas.deploymentbackup:
-                   sharedVault: /backups
+                   sharedVault: {{ BACKUP_DIR }}
 
 - name: set mail host and enable mail health check in sitedefault.yml
   blockinfile:

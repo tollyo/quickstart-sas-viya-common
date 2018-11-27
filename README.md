@@ -79,6 +79,12 @@ Controlling everything through ansible playbook roles allows us to
 - make any changes or overrides to individual steps by modifying the existing roles
 - adding steps as needed by simply adding additional roles   
 
+NB: All roles executed via the playbooks are tagged with their name. 
+E.g. if you want to run `prepare_nodes.yml` and exclude `set_host_routing`, invoke it with
+
+```
+ansible-playbook prepare_nodes.yml --skip-tags set_host_routing
+```
 
 
 
@@ -102,58 +108,65 @@ TODO
 
 
 1. __Ansible controller VM setup (optional)__
-   - yum installs
-   - security config
-   - ...
 
-   Should be called inline in VM bootstrap ("user-data" section or equivalent)
+- yum installs
+- security config
+- ...
+
+
+Should be called inline in VM bootstrap ("user-data" section or equivalent)
 
 1. __Ansible controller VM prereqs__
-    - install java, ansible, git
-    - export nfs share
-    - create ansible ssh key
-    ```
-    scripts/ansiblecontroller_prereqs.sh
-     --->/tmp/prereqs.sh &> /tmp/prereqs.log
-    ```
+
+- install java, ansible, git
+- export nfs share
+- create ansible ssh key
+
+```
+scripts/ansiblecontroller_prereqs.sh
+ --->/tmp/prereqs.sh &> /tmp/prereqs.log
+```
 
 1. __SAS VMs setup (optional)__
 
-    CLOUD SPECIFIC implementation
+CLOUD SPECIFIC implementation
 
 
-   - yum installs
-   - security config
-   - ...
+- yum installs
+- security config
+- ...
 
-   Should be called inline in VM bootstrap ("user-data" section or equivalent)
+Should be called inline in VM bootstrap ("user-data" section or equivalent)
  
 1. __SAS VMs prereqs__
 
-    CLOUD SPECIFIC implementation
+CLOUD SPECIFIC implementation
 
-    - mount nfs share
-    - set ansible ssh key
-    - post readiness flag
-   ```
-    scripts/sasnodes_prereqs.sh
-     --->/tmp/prereqs.sh &> /tmp/prereqs.log
-    ```
+- mount nfs share
+- set ansible ssh key
+- post readiness flag
+
+```
+scripts/sasnodes_prereqs.sh
+ --->/tmp/prereqs.sh &> /tmp/prereqs.log
+```
 
 1. __Ansible controller download project files__
 
-    CLOUD SPECIFIC implementation
+CLOUD SPECIFIC implementation
 
-    download all the additional scripts and playbooks need for the deployment. 
-    This part must be implemented per cloud (e.g. AWS used the aws cli do download the project files from s3, while Azure used the azure cli, etc.)
-    ```
-    scripts/download_file_tree.sh
-     --->/tmp/download_file_tree.sh &> /tmp/download_file_tree.log
-    ```
+download all the additional scripts and playbooks need for the deployment. 
+This part must be implemented per cloud (e.g. AWS used the aws cli do download the project files from s3, while Azure used the azure cli, etc.)
+
+```
+scripts/download_file_tree.sh
+ --->/tmp/download_file_tree.sh &> /tmp/download_file_tree.log
+```
     
 ### Step 1 Additional preparatory steps - driven by ansible from the ansible controller  
 
 The playbook `playbooks\prepare_nodes.yml` does additional steps needed before installing SAS, including
+
 - host routing
 - volume attachments
 - setting up directories and users 
@@ -161,6 +174,7 @@ The playbook `playbooks\prepare_nodes.yml` does additional steps needed before i
 Logs are routed to `/var/log/sas/install/prepare_nodes.yml`
  
 Example invocation:
+
 ``` 
   export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_nodes.log
   export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
@@ -170,99 +184,147 @@ Example invocation:
                    -e "CASCACHE_DISK="
 ```
 
-NB: All roles executed via the ````prepare_nodes.yml```` playbook are tagged with their name. 
-E.g. if you want to run ````prepare_nodes.yml```` and exclude ````set_host_routing````, invoke it with
-````
-ansible-playbook prepare_nodes.yml --skip-tags set_host_routing
-````
 
 1. __Wait for all SAS VMs to be ready__
 
-    Waits for all hosts to post their readiness flag in the ````/sas/install/nfs/readiness_flags```` directory.
+Waits for all hosts to post their readiness flag in the `/sas/install/nfs/readiness_flags` directory.
 
-    ```    
-    Role: prepare_nodes/wait_for_viya_vms
-    ```
+```    
+Role: prepare_nodes/wait_for_viya_vms
+```
 
 1. __Set up hosts routing__
 
-    Add routing information into the ````/etc/hosts```` file on all machines and set hostnames.
-    This is not needed if other host routing mechanisms are in place (e.g. Azure provides a built-in dns server that allows to set hostnames for the VMs).
-    
-    (Reminder: to skip this role, add ````--skip-tags set_host_routing``` to the playbook invocation)
+Add routing information into the `/etc/hosts` file on all machines and set hostnames.
+This is not needed if other host routing mechanisms are in place (e.g. Azure provides a built-in dns server that allows to set hostnames for the VMs).
 
-    ```
-    Role: prepare_nodes/set_host_routing
-    ```
+(Reminder: to skip this role, add `--skip-tags set_host_routing` to the playbook invocation)
+
+```
+Role: prepare_nodes/set_host_routing
+```
 
 1. __Create SASWORK dir__
 
-    Creates the ````/sastmp/saswork```` directory on all machines in the ````[ProgrammingServicesServers]```` host group.  
-    
-    ```
-    Inputs: 
-       group_vars: 
-         SASWORK_DIR: "/sastmp/saswork"     
-    Role: prepare_nodes/create_saswork_dir
-    ```
+Creates the `/sastmp/saswork` directory on all machines in the `[ProgrammingServicesServers]` host group.  
+
+```
+Inputs: 
+   group_vars: 
+     SASWORK_DIR: "/sastmp/saswork"     
+Role: prepare_nodes/create_saswork_dir
+```
     
 1. __Mount disks__
 
-    Mounts disks on the SAS VMs for the SAS Installation directory and user library
-    
-    ```
-    Host Groups:
-       NeedMountUserlibDrive
-       NeedMountSASInstallDrive
-    Inputs: 
-       group_vars: 
-         SAS_INSTALL_DIR: "/opt/sas"
-         USERLIB_DIR: "/opt/sas/viya/config/data/cas"       
-       extra_vars: SAS_INSTALL_DISK, USERLIB_DISK
-    Role: prepare_nodes/create_saswork_dir
-    ```
+Mounts disks on the SAS VMs for the SAS Installation directory and user library
+
+```
+Host Groups:
+   NeedMountUserlibDrive
+   NeedMountSASInstallDrive
+Inputs: 
+   group_vars: 
+     SAS_INSTALL_DIR: "/opt/sas"
+     USERLIB_DIR: "/opt/sas/viya/config/data/cas"       
+   extra_vars: SAS_INSTALL_DISK, USERLIB_DISK
+Role: prepare_nodes/create_saswork_dir
+```
     
 1. __Mount disks for CAS Cache__
 
-    CLOUD SPECIFIC implementation
+CLOUD SPECIFIC implementation
+
+Mounts disks on the SAS VMs for the SAS Installation directory and user library
+
+```
+Host Groups:
+   CASControllerServer
+Inputs: 
+   group_vars: 
+     CASCACHE_DIR: "/sastmp/cascache"
+   extra_vars: CASCACHE_DISK
+Role: prepare_nodes/mount_disk
+      If no disk is passed in it assumes ephemeral disks or no mount and executes
+      prepare_nodes/mount_cascache
+```
+
+1. __Create Shared Backup directory__
+
+The Viya Backup/Restore manager requires a shared common location called "sharedVault". In short, the backup works in 2 steps: 
+1 - it creates a local backup on a disk location local to each VM
+2 - it copies and consolidates the local backups into a shared location.
+http://go.documentation.sas.com/?cdcId=calcdc&cdcVersion=3.3&docsetId=calbr&docsetTarget=p0mo412bkanvwwn1off0b1gd10tz.htm&lo
+
+We have two roles for this:
+- `create_shared_backup_dir` creates a directory on the `[SharedVaultServer]` and exports it as nfs export
+- `mount_shared_backup_dir` mounts the directory on all `[sas-servers]` 
+ 
+
+NB: the location of the backup directory is set in `sitedefault.yml` as
+
+```
+sas.deploymentbackup:
+    sharedVault:
+```
+
+See the `prepare_deployment/update_sitedefault` role for details.
+
+```
+Host Group:
+   SharedVaultServer
+Inputs: 
+   group_vars: 
+     BACKUP_NFS_DIR: 
+     BACKUP_DIR:
+
+Role: prepare_nodes/create_shared_backup_dir
+
+```
+
+1. __Mount Shared Backup directory__
+
+For details, see the previous section "Create Shared Backup Directory"
 
 
-    Mounts disks on the SAS VMs for the SAS Installation directory and user library
-    
-    ```
-    Host Groups:
-       CASControllerServer
-    Inputs: 
-       group_vars: 
-         CASCACHE_DIR: "/sastmp/cascache"
-       extra_vars: CASCACHE_DISK
-    Role: prepare_nodes/mount_disk
-          If no disk is passed in it assumes ephemeral disks or no mount and executes
-          prepare_nodes/mount_cascache
-    ```
-    
+```
+Host Group:
+   sas-servers
+Inputs: 
+   group_vars: 
+     BACKUP_NFS_DIR: 
+     BACKUP_DIR:
+
+Role: prepare_nodes/mount_shared_backup_dir
+
+```
+
+
 1. __Download and run VIRK predeployment playbook__
 
-    Run the VIRK pre-install playbook to cover most of the Viya Deployment Guide prereqs in one fell swoop.
+Run the VIRK pre-install playbook to cover most of the Viya Deployment Guide prereqs in one fell swoop.
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-         VIRK_COMMIT_ID: 
-         VIRK_URL:
-         VIRK_DIR:
-       extra_vars: VIYA_VERSION
-    Role: prepare_nodes/get_and_run_virk
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+     VIRK_COMMIT_ID: 
+     VIRK_URL:
+     VIRK_DIR:
+   extra_vars: VIYA_VERSION
+Role: prepare_nodes/get_and_run_virk
 
-    ```
+```
+    
+    
     
     
 ### Step 2 Set up Users  (OpenLDAP install)
 
 The playbook `playbooks\openldapsetup.yml` sets up an OpenLDAP server that can be used as initial identity provider for SAS Viya.
 Out of the box, these two groups and users are being created:
+
 ```
    Group: sasadmin
     User: sasadmin
@@ -270,6 +332,7 @@ Out of the box, these two groups and users are being created:
    Group: sasusers
     User: sasuser
 ```
+
 You can edit the `user_list` variable in `group_vars\openldapall.yml` to create additional users in the `sasusers` group.
 
 ```    
@@ -284,6 +347,7 @@ You can edit the `user_list` variable in `group_vars\openldapall.yml` to create 
 ```
 
 Example invocation (from aws cfn-init):
+
 ``` 
   command: !Sub
     - |
@@ -314,6 +378,7 @@ The playbook `playbooks\prepare_deployment.yml` does additional steps needed bef
 Logs are routed to `/var/log/sas/install/prepare_deployment.yml`
  
 Example invocation:
+
 ``` 
   export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_deployment.log
   export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
@@ -325,132 +390,150 @@ Example invocation:
 
 1. __Download sas-orchestration cli__
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-         SAS_ORCHESTRATION_CLI_URL: 
-         UTILITIES_DIR:
-    Role: prepare_deployment/download_orchestration_cli
+Download the sas viya orchestration cli
 
-    ```
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+     SAS_ORCHESTRATION_CLI_URL: 
+     UTILITIES_DIR:
+Role: prepare_deployment/download_orchestration_cli
 
-1. __Access Mirror__
+```
 
-    CLOUD SPECIFIC implementation
+1. __Provide Access to Mirror Repository__
 
-    Provides access to SAS repository mirror files
-    The repository mirror needs to have been created earlier.
-    
-    For AWS, we do the following 
-    - create mirror directory
-    - downloads mirror files from s3
-    - set up web server  
+CLOUD SPECIFIC implementation
 
-    ```
-    Host Groups:
-       MirrorServer
-    Inputs: 
-       group_vars: 
-          MIRROR_DIR: 
-       extra_vars:
-          DEPLOYMENT_MIRROR
+Provides access to SAS repository mirror files
+The repository mirror needs to have been created earlier.
 
-    Role: prepare_deployment/deployment_mirror
+For AWS, we do the following 
+- create mirror directory
+- downloads mirror files from s3
+- set up web server  
 
-    ```
+```
+Host Groups:
+   MirrorServer
+Inputs: 
+   group_vars: 
+      MIRROR_DIR: 
+   extra_vars:
+      DEPLOYMENT_MIRROR
+
+Role: prepare_deployment/deployment_mirror
+
+```
 
 1. __Download SOE file__
 
-    CLOUD SPECIFIC implementation
+CLOUD SPECIFIC implementation
 
-    in AWS the SOE file, DEPLOYMENT_DATA_LOCATION, is stored in S3
+in AWS the SOE file, DEPLOYMENT_DATA_LOCATION, is stored in S3
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-          TEMPORARY_SOE_FILE    
-       extra_vars:
-          DEPLOYMENT_DATA_LOCATION
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+      TEMPORARY_SOE_FILE    
+   extra_vars:
+      DEPLOYMENT_DATA_LOCATION
 
-    Role: prepare_deployment/download_soe_file
+Role: prepare_deployment/download_soe_file
 
-    ```
+```
+
 1. __Create viya playbook__
 
-    runs the `sas-orchestration` cli against the soe file 
+runs the `sas-orchestration` cli against the soe file 
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-          MIRROR_URL:
-          MIRROR_OPT:
-          INSTALL_DIR:
-          UTILTIES_DIR: 
-          TEMPORARY_SOE_FILE:
-       extra_vars:
-          DEPLOYMENT_MIRROR (optional)
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+      MIRROR_URL:
+      MIRROR_OPT:
+      INSTALL_DIR:
+      UTILTIES_DIR: 
+      TEMPORARY_SOE_FILE:
+   extra_vars:
+      DEPLOYMENT_MIRROR (optional)
 
-    Role: prepare_deployment/create_viya_playbook
+Role: prepare_deployment/create_viya_playbook
 
-    ```
+```
+
 1. __Modify sas_viya_playbook/vars.yml__
 
-    Makes any topology related changes in `vars.yml`.
+Makes any topology related changes in `vars.yml`.
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-          VIYA_PLAYBOOK_DIR:
-          SAS_INSTALL_DIR:
-          CASCACHE_DIR:
-          SASWORK_DIR:
-       other:
-          PostgresPrimaryServer host group
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+      VIYA_PLAYBOOK_DIR:
+      SAS_INSTALL_DIR:
+      CASCACHE_DIR:
+      SASWORK_DIR:
+   other:
+      PostgresPrimaryServer host group
 
-    Role: prepare_deployment/update_vars
+Role: prepare_deployment/update_vars
 
-    ```
+```
 
 1. __Modify sitedefault.yml__
 
-    Copies `sitedefault.yml` from the openldap playbook (if that was run) or else creates it.
-    Makes any topology related changes in `sitedefault.yml`.
+Copies `sitedefault.yml` from the openldap playbook (if that was run) or else creates it.
+Makes any topology related changes in `sitedefault.yml`.
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-          VIYA_PLAYBOOK_DIR:
-          SAS_INSTALL_DIR:
-       extra_vars:
-          ADMINPASS
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+      VIYA_PLAYBOOK_DIR:
+      SAS_INSTALL_DIR:
+      BACKUP_DIR
+   extra_vars:
+      ADMINPASS
 
-    Role: prepare_deployment/update_sitedefault
+Role: prepare_deployment/update_sitedefault
 
-    ```
+```
 
 1. __Modify inventory__
 
-    ```
-    Host Groups:
-       AnsibleController
-    Inputs: 
-       group_vars: 
-          VIYA_PLAYBOOK_DIR:
-          SAS_INSTALL_DIR:
-       extra_vars:
-          ADMINPASS
+```
+Host Groups:
+   AnsibleController
+Inputs: 
+   group_vars: 
+      VIYA_PLAYBOOK_DIR:
+      SAS_INSTALL_DIR:
+   extra_vars:
+      ADMINPASS
 
-    Role: prepare_deployment/update_inventory
+Role: prepare_deployment/update_inventory
 
-    ```
+```
 
+### Step 5 Install Viya 
+
+Invoke the SAS Viya playbook.
+
+Logs are routed to `/var/log/sas/install/prepare_deployment.yml`
+ 
+Example invocation:
+
+``` 
+export ANSIBLE_LOG_PATH=/var/log/sas/install/viya_deployment.log
+pushd /sas/install/sas_viya_playbook
+ansible-playbook -v site.yml
+```

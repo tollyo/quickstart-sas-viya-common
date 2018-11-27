@@ -1,0 +1,32 @@
+---
+
+- name: create {{ BACKUP_NFS_DIR }} directory
+  file:
+    path: "{{ BACKUP_NFS_DIR }}"
+    state: directory
+    owner: "sas"
+    group: "sas"
+    mode: 0755
+
+- name: nfs setup - install nfs
+  yum:
+    name: nfs-utils
+    state: installed
+
+- name: nfs setup - start nfs
+  service:
+    name: nfs
+    state: started
+    enabled: yes
+
+- name: define {{ BACKUP_NFS_DIR }} export
+  lineinfile:
+    path: /etc/exports
+    state: present
+    create: true
+    line: "{{ BACKUP_NFS_DIR }} directory *(rw,sync)"
+
+- name: export {{ BACKUP_DIR }} directory
+  shell:  exportfs -a
+
+

@@ -97,5 +97,25 @@
   tags:
     - get_and_run_virk
 
+- name: created share backup directory
+  hosts: [SharedVaultServer]
+  become: yes
+  become_user: root
+  roles:
+    - role: prepare_nodes/create_shared_backup_dir
+  tags:
+    - create_shared_backup_dir
+    - shared_backup_dir
+
+- name: mount share backup directory
+  hosts: [sas-servers]
+  become: yes
+  become_user: root
+  roles:
+    - role: prepare_nodes/mount_shared_backup_dir
+  tags:
+    - mount_shared_backup_dir
+    - shared_backup_dir
+
 
 
