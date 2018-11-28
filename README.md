@@ -12,39 +12,63 @@ This project is meant to be included as a "git submodule" into your git project,
 ```
  myproject
    - common (-> quickstart-sas-viya-common)
-     - playbooks
-       - ...
+     - ansible
+       - playbooks
+       - roles
      - scripts
-       - ...
-   - playbooks
+   - ansible      
+     - playbooks
+     - roles
    - scripts
    - templates
    ...
 ```
 
-If you want to modify/overwrite any of of the scripts or playbooks roles in "common", copy them to the corresponding "scripts" or "playbooks" directory in your project. 
+If you want to modify/overwrite any of of the scripts,  roles, or playbooks in "common", 
+copy them to the corresponding "scripts" or "playbooks" directory in your project. 
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**   
+
+- [Overview: How to create your own Cloud Rapid Deployment template](#overview-how-to-create-your-own-cloud-rapid-deployment-template)
+- [How the playbooks and roles and scripts work](#how-the-playbooks-and-roles-and-scripts-work)
+- [Installation users](#installation-users)
+- [Steps](#steps)
+  - [VM post initialization -executed on the individual hosts](#vm-post-initialization--executed-on-the-individual-hosts)
+  - [Input parameter validation](#input-parameter-validation)
+  - [Additional preparatory steps - driven by ansible from the ansible controller](#additional-preparatory-steps---driven-by-ansible-from-the-ansible-controller)
+    - [IAAS specific setup steps:](#iaas-specific-setup-steps)
+  - [Set up Users  (OpenLDAP install)](#set-up-users--openldap-install)
+  - [Prepare Deployment](#prepare-deployment)
+  - [Run VIRK](#run-virk)
+  - [Install Viya](#install-viya)
+  - [Post Deployment Steps](#post-deployment-steps)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
 
 ## Overview: How to create your own Cloud Rapid Deployment template
 
+
 - create the infrastructure (networks, VMs, firewalls) using the cloud provider's templating language (e.g. AWS Cloudformation on AWS, Azure Resource Manager, terraform ... )
 - include this project as git submodule into your git project
-- modify the files with the static definitions to match your topology
-  - `playbooks/group_vars/`
-  - `playbooks/inventory.ini`
+- copy the contents of `common/ansible/playbooks` into `ansible/playbooks` 
+- modify the static topology definition to match your topology
 - implement any parts of the scripts and playbooks that have cloud-specific elements and/or need to be added or modified
 - run the provided prereq shell scripts on the the VMs
 - run the deployment playbooks on the ansible controller
 
 ## How the playbooks and roles and scripts work
 
-Most of the steps for the deployment are being implemented in ansible. You find all that code in the `playbooks` directory. 
+Most of the steps for the deployment are being implemented in ansible. You find all that code in the `playbooks` and `roles` directories.
+
 The bootstrapping code at the very beginning (which, among other things, installs ansible) uses `bash`. You find that code in the `scripts` directory.    
 
-When you create your infrastructure, all the cloud provider's templating languages provide some way to execute bootstrapping code on the VMs (usually some form of [cloud-init](https://cloud-init.io/), often implemented as `UserData` VM attribute).
-That is where you kick off scripts that download the scripts and ansible playbooks to your VMs and then execute those scripts and playbooks.
+When you create your infrastructure, all the cloud providers' templating languages provide some way to execute bootstrapping code on the VMs 
+(usually some form of [cloud-init](https://cloud-init.io/), often implemented as `UserData` VM attribute).
+That is where you kick off the download of the scripts and ansible playbooks to your VMs and then execute those scripts and playbooks.
 
 First, you execute the bootstrapping scripts on each VM, which set up the necessary pieces so that the VMs can communicate with each other.
 After that, everything will be driven by a number of playbooks executed from the ansible controller.
@@ -52,32 +76,43 @@ After that, everything will be driven by a number of playbooks executed from the
 You invoke a series of ansible playbooks, which in turn execute a number of roles. Using playbooks and roles allows us to clearly structure the process. 
 Each logical step corresponds to a role, and the roles are grouped into separate playbook invocations which correspond to the main deployment steps (environment preparation, install, post-install steps etc.) 
 
+Controlling everything through ansible playbook roles allows us to 
+- specify the topology in only one place: the `inventory.ini` file
+- define all global variables in only one place: the `group_vars/all.yml` file. 
+- make any changes or overrides to individual steps by modifying the existing roles
+- adding steps as needed by simply adding additional roles
+
 You can change the implementation of each role, or add additional roles.
 
-To change the implementation of a role, copy it into the corresponding location in the `playbooks` directory in your project and modify it there.
+To change the implementation of a role, copy it into the corresponding location in the `ansible/roles` directory in your project and modify it there.
 The overwritten role will automatically be picked up (controlled by an ansible search path option).
 
-During the preparation steps, the project files will be copied to the following file structure on the ansible controller; 
+To add a role, write its implemention and put it into the `ansible/roles` directory in your project. Then edit one of the playbooks in your `ansible/playbooks` directory and add that role.
+Or add a playbook and make sure to invoke it from your ansible controller `cloud-init` script. 
+
+During the preparation steps, the project files will be copied to the following file structure on the ansible controller (by the [scripts/download_file_tree.sh](scripts/download_file_tree.sh) script ) 
 
 ```
 /sas/install
 |-- common
-|   |-- playbooks
+|   |-- ansible
+|       `-- playbooks
+|       `-- roles
 |   `-- scripts
-|-- playbooks
+|-- ansible
+|   `-- playbooks
+|   `-- roles
 `-- scripts
 ...
 ```
 
 
-TODO: explain lookthrough (roles_path = /sas/install/playbooks/roles;/sas/install/common/playbooks/roles). Problem: the roles in the in the current playbook directory are being used first, no matter the roles_path.
-If we invoke the playbooks in /common, it'll never find overrides with the same name elsewhere.  
+The playbooks are run as the [installation user](#installation-users) from `/sas/install/ansible/playbooks`. 
 
-Controlling everything through ansible playbook roles allows us to 
-- specify the topology in only one place: the `inventory.ini` file
-- define all global variables in only one place: the `group_vars` files. 
-- make any changes or overrides to individual steps by modifying the existing roles
-- adding steps as needed by simply adding additional roles   
+The roles search path is set in  `/sas/install/ansible/playbooks/ansible.cfg` as `roles_path = /sas/install/ansible/roles:/sas/install/common/ansible/roles`.
+That means any roles in `/sas/install/ansible/roles` will be used first. All the remaining roles for which  you did not provide an IAAS specific implementation 
+will be found in  `/sas/install/common/ansible/roles`.
+  
 
 NB: All roles executed via the playbooks are tagged with their name. 
 E.g. if you want to run `prepare_nodes.yml` and exclude `set_host_routing`, invoke it with
@@ -102,9 +137,6 @@ It needs to be the same user on all VMs.
 
 ## Steps
 
-### Input parameter validation
-
-TODO
 
 ### VM post initialization -executed on the individual hosts
 
@@ -132,15 +164,15 @@ TODO
  1. __SAS VMs setup (optional)__
 
     CLOUD SPECIFIC implementation
+    
     Additional bootstrapping on the sas nodes. 
-    Should be called inline in VM bootstrap ("user-data" section or equivalent):    
-    -  yum installs
+    
+    Should be called inline in VM bootstrap ("user-data" section or equivalent). 
+    - yum installs
     - security config
     - ...
 
  1. __SAS VMs prereqs__
-
-    CLOUD SPECIFIC implementation
 
     Preparing ansible:
     - mount nfs share
@@ -152,17 +184,45 @@ TODO
      --->/tmp/prereqs.sh &> /tmp/prereqs.log
     ```
 
- 1. __Ansible controller download project files__
+ 1. __Ansible controller: download project files__
 
-    CLOUD SPECIFIC implementation
-
-    Download all the additional scripts and playbooks need for the deployment. 
-    This part must be implemented per cloud (e.g. AWS used the aws cli do download the project files from s3, while Azure used the azure cli, etc.)
-
+    Download all the additional scripts and playbooks need for the deployment.
+    
+    This script loops over the contents of the file `file_tree.txt` which was created using the script `common/scripts/create_file_tree.sh`. 
+    It downloads the files from the IAAS specific storage location and puts the into `/sas/install` on the ansible controller.
+      
+    The script has implementation for AWS, Azure, and GCP and requires the following environment variables to be set:
+    
     ```
-    scripts/download_file_tree.sh
-     --->/tmp/download_file_tree.sh &> /tmp/download_file_tree.log
+       IAAS=[aws|azure|gcp]
+       FILE_ROOT=<IAAS specific location>
     ```
+    
+    Example invocation (for AWS):
+    
+    ```
+       !Sub
+       - su -l ec2-user -c 'IAAS=aws FILE_ROOT=${S3_FILE_ROOT} /tmp/download_file_tree.sh &>/tmp/download_file_tree.log'
+       - S3_FILE_ROOT: !Sub "${QSS3BucketName}/${QSS3KeyPrefix}"
+    ```
+
+### Input parameter validation
+
+As much as possible, input parameter validation should happen in the IAAS template. 
+But the templates have different capabilities, and not everything can be checked at that level.
+
+For example, the template checking mechanism might be able to determine that the name of the SOE file is a valid file name, 
+but it will likely not be able to check that it actually contains a SAS license. 
+
+It is good practice to add additional checking as early as possible. We want to avoid setting up and configuring infrastructure  
+only to fail 20 minutes in because the specified Mirror location does not actually contain a valid mirror etc.
+
+- verify ssl 
+- verify hosted zone
+- verify mirror
+- verify elb has been created
+- verify bucket no tpublic
+
     
 ### Additional preparatory steps - driven by ansible from the ansible controller  
 
@@ -178,8 +238,8 @@ Example invocation:
 
 ``` 
 export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_nodes.log
-export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
-ansible-playbook -v /sas/install/common/playbooks/prepare_nodes.yml \
+export ANSIBLE_CONFIG=/sas/install/ansible/playbooks/ansible.cfg
+ansible-playbook -v /sas/install/ansible/playbooks/prepare_nodes.yml \
                -e "USERLIB_DISK=/dev/xvdl" \
                -e "SAS_INSTALL_DISK=/dev/xvdg" \
                -e "CASCACHE_DISK="
@@ -279,10 +339,17 @@ ansible-playbook -v /sas/install/common/playbooks/prepare_nodes.yml \
     ```
     
 
+#### IAAS specific setup steps:
+
+AWS:
+- cloudwatch log
+- messages
+
+
     
 ### Set up Users  (OpenLDAP install)
 
-The playbook `playbooks\openldapsetup.yml` sets up an OpenLDAP server that can be used as initial identity provider for SAS Viya.
+The playbook `ansible/playbooks/openldapsetup.yml` sets up an OpenLDAP server that can be used as initial identity provider for SAS Viya.
 Out of the box, these two groups and users are being created:
 
 ```
@@ -293,7 +360,7 @@ Out of the box, these two groups and users are being created:
     User: sasuser
 ```
 
-You can edit the `user_list` variable in `group_vars\openldapall.yml` to create additional users in the `sasusers` group.
+You can edit the `user_list` variable in `group_vars/openldapall.yml` to create additional users in the `sasusers` group.
 
 ```    
     Host Groups:
@@ -314,8 +381,8 @@ Example invocation (from aws cfn-init):
       if [ -n "${ADMINPASS}" ]  && [ -n "${USERPASS}" ]; then
         su -l ec2-user -c '
           export ANSIBLE_LOG_PATH=/var/log/sas/install/openldap.log
-          export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
-          ansible-playbook -v /sas/install/common/playbooks/openldapsetup.yml \
+          export ANSIBLE_CONFIG=/sas/install/ansible/playbooks/ansible.cfg
+          ansible-playbook -v /sas/install/ansible/playbooks/openldapsetup.yml \
             -e "OLCROOTPW='${ADMINPASS}'" \
             -e "OLCUSERPW='${USERPASS}'"
         '
@@ -328,7 +395,7 @@ Example invocation (from aws cfn-init):
 
 ### Prepare Deployment 
 
-The playbook `playbooks\prepare_deployment.yml` does additional steps needed before installing SAS, including
+The playbook `ansible/playbooks/prepare_deployment.yml` does additional steps needed before installing SAS, including
 - download sas-orchestration
 - set up access to deployment mirror (optional)
 - build playbook from SOE file
@@ -341,8 +408,8 @@ Example invocation:
 
 ``` 
   export ANSIBLE_LOG_PATH=/var/log/sas/install/prepare_deployment.log
-  export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
-  ansible-playbook -v /sas/install/common/playbooks/prepare_deployment.yml \
+  export ANSIBLE_CONFIG=/sas/install/ansible/playbooks/ansible.cfg
+  ansible-playbook -v /sas/install/ansible/playbooks/prepare_deployment.yml \
                       -e "DEPLOYMENT_MIRROR=${DeploymentMirror}" \
                       -e "DEPLOYMENT_DATA_LOCATION=${DeploymentDataLocation}" \
                       -e "ADMINPASS=${SASAdminPass}"
@@ -492,20 +559,22 @@ Example invocation:
     
 The [VIRK pre-install playbook](https://github.com/sassoftware/virk/tree/viya-3.4/playbooks/pre-install-playbook) covers most of the Viya Deployment Guide prereqs in one fell swoop.
 
-It is being install with the `prepare_nodes/get_virk` role in the `prepare_nodes.yml` playbook, into `/sas/install/virk'
+It is being installed with the `prepare_nodes/get_virk` role in the `prepare_nodes.yml` playbook, into the location `VIRK_DIR: /sas/install/ansible/virk'
 
 Example invocation (run as install user):
 
 ```
 export ANSIBLE_LOG_PATH=/var/log/sas/install/virk.log
-export ANSIBLE_INVENTORY=/sas/install/sas_viya_playbook/inventory.ini
-ansible-playbook -v /sas/install/virk/playbooks/pre-install-playbook/viya_pre_install_playbook.yml \
+export ANSIBLE_INVENTORY=/sas/install/ansible/sas_viya_playbook/inventory.ini
+ansible-playbook -v /sas/install/ansible/virk/playbooks/pre-install-playbook/viya_pre_install_playbook.yml \
  -e "use_pause=false" \
  --skip-tags skipmemfail,skipcoresfail,skipstoragefail,skipnicssfail,bandwidth
 ```
 
 NOTE: We are using `inventory.ini` from the SAS Viya playbook. One reason for this is: VIRK uses the `[sas-all]` host group,
 which only available after setting up the SAS Viya playbook and merging is with the project `inventory.ini`. 
+
+
 
 ### Install Viya 
 
@@ -517,20 +586,20 @@ Example invocation:
 
 ``` 
 export ANSIBLE_LOG_PATH=/var/log/sas/install/viya_deployment.log
-pushd /sas/install/sas_viya_playbook
-ansible-playbook -v site.yml
+pushd /sas/install/ansible/sas_viya_playbook
+  ansible-playbook -v site.yml
 ```
 
 ### Post Deployment Steps 
 
 Some steps can only be run after the deployment.
 
-Example Invocation (as always, run as install user)"
+Example Invocation (as always, run as install user):
 
 ```
 export ANSIBLE_LOG_PATH=/var/log/sas/install/post_deployment.log
-export ANSIBLE_CONFIG=/sas/install/common/playbooks/ansible.cfg
-ansible-playbook -v /sas/install/common/playbooks/post_deployment.yml
+export ANSIBLE_CONFIG=/sas/install/ansible/playbooks/ansible.cfg
+ansible-playbook -v /sas/install/ansible/playbooks/post_deployment.yml
 ```
 
  1. __Create Shared Backup directory__
