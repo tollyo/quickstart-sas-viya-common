@@ -19,7 +19,7 @@
 set -e
 
 test -n $FILE_ROOT
-test -n IAAS
+test -n $IAAS
 TREE_FILE=/tmp/file_tree.txt
 DOWNLOAD_DIR=/sas/install
 INSTALL_USER=$(whoami)
@@ -54,25 +54,22 @@ pushd $DOWNLOAD_DIR
 
         set_directory_permission $file_name
 
-        # download the file
-        if [[ $IAAS == aws ]]; then
-          aws s3 cp s3://${FILE_ROOT}$file_name $file_name
-        elif [[ $IAAS == azure ]]; then
-          :
-        elif [[ $IAAS == gcp ]]; then
-          :
-        fi
-        # retrieve the permissions attribute
-        # and set permissions and ownership
-        chmod_attr="$(echo "$line" | cut -f2 -d'|')"
-        chmod $chmod_attr $file_name
-        chown ${INSTALL_USER}:${INSTALL_USER} $file_name
-
+        # download the file if it does not yet exist
+        #if [ ! -f $file_name ]; then
+            if [[ $IAAS == aws ]]; then
+              aws s3 cp s3://${FILE_ROOT}$file_name $file_name
+            elif [[ $IAAS == azure ]]; then
+              :
+            elif [[ $IAAS == gcp ]]; then
+              :
+            fi
+            # retrieve the permissions attribute
+            # and set permissions and ownership
+            chmod_attr="$(echo "$line" | cut -f2 -d'|')"
+            chmod $chmod_attr $file_name
+            chown ${INSTALL_USER}:${INSTALL_USER} $file_name
+        #fi
     done < ${TREE_FILE}
-
-    # merge the "common" file structure into the top level
-#    cp -r common/* .
-#    rm -rf common
 
 popd
 
