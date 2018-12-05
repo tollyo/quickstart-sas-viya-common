@@ -90,10 +90,12 @@
 
           # in case it was mounted already...
           umount {{ CASCACHE_DIR }} || true
-          # for some instances, /mnt is the default instance store, already mounted. so we unmount it:
-          umount /mnt || true
+          ## for some instances, /mnt is the default instance store, already mounted. so we unmount it:
+          #umount /mnt || true
 
           mount -t xfs -o noatime /dev/md0 {{ CASCACHE_DIR }}
+
+          chmod 777 {{ CASCACHE_DIR }}
         fi
       dest: /usr/sbin/disks_ephemeral.sh
       mode: "0700"
