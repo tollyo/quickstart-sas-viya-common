@@ -89,14 +89,5 @@
     - MOUNT_DIR: "{{ CASCACHE_DIR }}"
     - MOUNT_DISK: "{{ CASCACHE_DISK }}"
 
-- name: Get VIRK pre-install playbook
-  hosts: [AnsibleController]
-  gather_facts: true
-  roles:
-    - role: prepare_nodes/get_virk
-  tags:
-    - get_virk
-
-
 
 

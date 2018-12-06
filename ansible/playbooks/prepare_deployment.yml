@@ -54,3 +54,12 @@
   tags:
     - update_inventory
 
+- name: Get VIRK pre-install playbook
+  hosts: [AnsibleController]
+  gather_facts: true
+  roles:
+    - role: prepare_deployment/get_virk
+  tags:
+    - get_virk
+
+
