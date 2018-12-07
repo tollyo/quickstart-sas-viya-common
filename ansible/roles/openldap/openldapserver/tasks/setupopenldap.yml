@@ -20,10 +20,12 @@
 - name: encrypt the admin password
   shell: "slappasswd -s '{{OLCROOTPW | b64decode }}'"
   register: OLCROOTPW_ENC
+  no_log: true
 
 - name: encrypt the user password
   shell: "slappasswd -s '{{OLCUSERPW | b64decode }}'"
   register: OLCUSERPW_ENC
+  no_log: true
 
 - name: copy db_config
   shell: cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG

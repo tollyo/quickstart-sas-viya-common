@@ -14,6 +14,7 @@
 
 - name: execute base.ldif
   shell: "ldapadd -x -D {{OLCROOTDN}} -w '{{OLCROOTPW | b64decode }}' -f {{LDIFLOC}}/base.ldif"
+  no_log: true
 
 - name: create sasldap.ldif
   template:
@@ -23,7 +24,7 @@
 
 - name: execute sasldap.ldif
   shell: "ldapadd -x -D {{OLCROOTDN}} -w '{{OLCROOTPW | b64decode }}' -f {{LDIFLOC}}/sasldap.ldif"
-
+  no_log: true
 
 - name: create sasadmin.ldif
   template:
@@ -33,7 +34,7 @@
 
 - name: execute sasadmin.ldif
   shell: "ldapadd -x -D {{OLCROOTDN}} -w '{{OLCROOTPW | b64decode }}' -f {{LDIFLOC}}/sasadmin.ldif"
-
+  no_log: true
 
 - name: create install_users.ldif
   template:
@@ -44,5 +45,5 @@
 - name: execute install_users.ldif
   #shell: "cat {{LDIFLOC}}/install_users.ldif"
   shell: "ldapadd -x -D {{OLCROOTDN}} -w '{{OLCROOTPW | b64decode }}' -f {{LDIFLOC}}/install_users.ldif"
-
+  no_log: true
 

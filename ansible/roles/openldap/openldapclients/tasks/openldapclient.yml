@@ -37,8 +37,9 @@
 - name: check if it works with ldapsearch
   shell: "ldapsearch -H ldaps://{{CERT_LDAP}}:636 -b \"{{OLCSUFFIX}}\" -x -D \"{{OLCROOTDN}}\" -w '{{OLCROOTPW | b64decode }}' "
   register: ldapsearch
+  no_log: true
   failed_when: "'Success' not in ldapsearch.stdout"
-- debug: var=ldapsearch.stdout_lines
+
 
 
 
