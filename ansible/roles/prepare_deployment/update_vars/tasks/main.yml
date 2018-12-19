@@ -36,7 +36,7 @@
     regexp: '#FOUNDATION_CONFIGURATION:'
     replace: 'FOUNDATION_CONFIGURATION:'
 
-- name: set redshift access forwork spaceserver
+- name: set redshift access for workspaceserver
   blockinfile:
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
     marker: '#{mark} add ws access to redshift'
@@ -65,11 +65,17 @@
     regexp:  '#2: ODBCINI=.*'
     replace: '2: ODBCINI=$ODBCHOME/odbc.ini'
 
+- name: set JAVA_HOME
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+    regexp:  '#4: JAVA_HOME=.*'
+    replace: '4: JAVA_HOME=/usr/lib/jvm/jre'
+
 - name: set LD_LIBRARY_PATH
   replace:
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
     regexp:  '#5: LD_LIBRARY_PATH=.*'
-    replace: '5: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ODBCHOME/lib'
+    replace: '5: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ODBCHOME/lib:$JAVA_HOME/lib/amd64/server'
 
 - name: set pg host
   replace:
