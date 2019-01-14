@@ -22,5 +22,16 @@
     - mount_shared_backup_dir
     - shared_backup_dir
 
+- name: install mysql client
+  hosts: [NeedDatabaseAccessClients]
+  gather_facts: False
+  become: yes
+  become_user: root
+  roles:
+    - role: post_deployment/install_mysql_client
+  tags:
+    - install_mysql_client
+
+
 
 

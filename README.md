@@ -633,7 +633,7 @@ ansible-playbook -v /sas/install/ansible/playbooks/post_deployment.yml
          BACKUP_NFS_DIR:
          BACKUP_DIR:
     
-    Role: prepare_nodes/create_shared_backup_dir
+    Role: post_deployment/create_shared_backup_dir
     ```
 
  1. __Mount Shared Backup directory__
@@ -648,5 +648,18 @@ ansible-playbook -v /sas/install/ansible/playbooks/post_deployment.yml
          BACKUP_NFS_DIR:
          BACKUP_DIR:
     
-    Role: prepare_nodes/mount_shared_backup_dir
+    Role: post_deployment/mount_shared_backup_dir
     ```
+    
+ 1. __Install MySQL clilent__
+    
+     Installs the mysql client 5.6 on workspace server and cas controller
+     
+     ```
+     Host Group: 
+        NeedDatabaseAccessClients
+     Inputs: 
+        -none-
+        
+     Role: post_deployment/install_mysql_client
+        ```
