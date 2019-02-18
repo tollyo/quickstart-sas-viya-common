@@ -1,0 +1,21 @@
+---
+
+- name: get compiler
+  yum:
+    name: gcc
+    state: installed
+
+- name: get the unixODBC 2.3.7 source
+  unarchive:
+    src: ftp://ftp.unixodbc.org/pub/unixODBC/unixODBC-2.3.7.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- name: build and install
+  shell: |
+    ./configure --prefix={{ UNIXODBC_LOCATION }}
+    make
+    make install
+  args:
+    chdir: /tmp/unixODBC-2.3.7
+

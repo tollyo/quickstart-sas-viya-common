@@ -1,0 +1,76 @@
+---
+
+- name: install driver
+  yum:
+    name: https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.13-1.el7.x86_64.rpm
+    state: installed
+
+# gets installed into /usr/lib64, which is already in the search path
+
+- name: determine spre/viya
+  stat:
+    path: /opt/sas/spre/home
+  register: is_spre
+
+- set_fact:
+     subdir: "{% if is_spre.stat.exists==True %}spre{% else %}viya{% endif %}"
+
+- debug:
+    var: subdir
+
+
+- name: create accessclients subdir if needed
+  file:
+    path: /opt/sas/{{ subdir }}/home/lib64/accessclients
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+# - name: create odbcinst.ini if needed on services host
+#   file:
+#      path: /opt/sas/{{ subdir}}/home/lib64/accessclients/odbcinst.ini
+#      state: touch
+#      owner: root
+#      group: root
+#      mode: 0777
+
+
+
+- set_fact:
+    driver_definition: |+
+      [MySQL]
+      Description=ODBC for MySQL 8
+      Driver=/usr/lib64/libmyodbc8w.so
+
+- name: install driver
+  shell:  |
+    export ODBCSYSINI="/opt/sas/{{ subdir }}/home/lib64/accessclients"
+    echo "{{driver_definition}}" | {{UNIXODBC_LOCATION}}/bin/odbcinst -i -d -r
+    
+
+
+# - lineinfile:
+#     path: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     insertbefore: BOF
+#     state: present
+#     line: '[ODBC Drivers]'
+
+# - lineinfile:
+#     path: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     insertafter: '\[ODBC Drivers\]'
+#     state: present
+#     line: '[ODBC]'
+
+
+
+# - name: Add driver definition to odbcinst.ini (controller)
+#   blockinfile:
+#     dest: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     marker: <!-- {mark} MySQLMy ODBC Driver -->
+#     block: "{{ driver_definition }}"
+
+# - lineinfile:
+#     path: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     insertafter: '^\[ODBC\ Drivers\]'
+#     state: present
+#     line: 'MySQL=Installed'

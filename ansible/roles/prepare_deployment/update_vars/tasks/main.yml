@@ -1,5 +1,28 @@
 ---
 
+- name: set sas/access variants
+  set_fact:
+     sas_ld_library_path: $LD_LIBRARY_PATH:$ODBCHOME/lib:/opt/sas/spre/home/lib64
+     cas_ld_library_path: $LD_LIBRARY_PATH:$ODBCHOME/lib:$JAVA_HOME/lib/amd64/server:/opt/sas/viya/home/lib64
+  when: HAS_ODBC | default("0") == "0"
+
+
+- name: set sas/access variants for ODBC
+  set_fact:
+     sas_ld_library_path: "$LD_LIBRARY_PATH:$ODBCHOME/lib:/opt/sas/spre/home/lib64:/usr/pgsql-11/lib:{{ UNIXODBC_LOCATION }}/lib"
+     cas_ld_library_path: "$LD_LIBRARY_PATH:$ODBCHOME/lib:$JAVA_HOME/lib/amd64/server:/opt/sas/viya/home/lib64:/usr/pgsql-11/lib:{{ UNIXODBC_LOCATION }}/lib"
+  when: HAS_ODBC | default("0") == "1"
+
+
+- name: set sas/access variants for ODBC to Redshift
+  set_fact:
+     sas_ld_library_path: "{{sas_ld_library_path}}:/opt/amazon/redshiftodbc/lib/64"
+     cas_ld_library_path: "{{cas_ld_library_path}}:/opt/amazon/redshiftodbc/lib/64"
+  ## when SAS/Access to Redshift is licensed we do not want to configure the ODBC to Redshift
+  #when: HAS_ODBC | default("0") == "1" and HAS_REDSHIFT | default("0") == "0"
+  when: HAS_ODBC | default("0") == "1" 
+
+
 - name: change cas cache location
   lineinfile:
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
@@ -36,18 +59,20 @@
     regexp: '#FOUNDATION_CONFIGURATION:'
     replace: 'FOUNDATION_CONFIGURATION:'
 
-- name: set redshift access for workspaceserver
+- name: set sas/access environment vars for workspaceserver
   blockinfile:
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
-    marker: '#{mark} configure sas/access environment variables'
+    marker: '#{mark} configure sas/access environment variables (workspaceserver)'
     insertafter: '^FOUNDATION_CONFIGURATION:'
     block: |2
-        1: ODBCINI={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients/odbc.ini
-        2: ODBCINST={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients/odbcinst.ini
-        3: ODBCHOME={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients
-        4: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ODBCHOME/lib:/opt/sas/spre/home/lib64
-        5: PATH=$PATH:/opt/sas/spre/home/lib64/psql
-        6: PGCLIENTENCODING=UTF-8
+          1: ODBCHOME={{ SAS_INSTALL_DIR }}/spre/home/lib64/accessclients
+          2: ODBCINI=$ODBCHOME/odbc.ini
+          3: ODBCINST=$ODBCHOME/odbcinst.ini
+          4: ODBCSYSINI=$ODBCHOME
+          5: LD_LIBRARY_PATH={{ sas_ld_library_path }}
+          6: PATH=$PATH:/opt/sas/spre/home/lib64/psql
+          7: PGCLIENTENCODING=UTF-8
+          8: EASYSOFT_UNICODE=yes
 
 - name: set CAS Settings
   replace:
@@ -55,36 +80,21 @@
     regexp:  '#CAS_SETTINGS:'
     replace: 'CAS_SETTINGS:'
 
-- name: set ODBC home directory
-  replace:
-    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
-    regexp:  '#1: ODBCHOME=.*'
-    replace: '1: ODBCHOME={{ SAS_INSTALL_DIR }}/viya/home/lib64/accessclients'
 
-- name: set ODBCINI
-  replace:
+- name: set sas/access environment vars for cas controller
+  blockinfile:
     dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
-    regexp:  '#2: ODBCINI=.*'
-    replace: '2: ODBCINI=$ODBCHOME/odbc.ini'
-
-- name: set PGCLIENTENCODING
-  replace:
-    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
-    regexp:  '#3: ORACLE_HOME=.*'
-    replace: '3: PGCLIENTENCODING=UTF-8'
-
-- name: set JAVA_HOME
-  replace:
-    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
-    regexp:  '#4: JAVA_HOME=.*'
-    replace: '4: JAVA_HOME=/usr/lib/jvm/jre'
-
-- name: set LD_LIBRARY_PATH
-  replace:
-    dest: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
-    regexp:  '#5: LD_LIBRARY_PATH=.*'
-    replace: '5: LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ODBCHOME/lib:$JAVA_HOME/lib/amd64/server:/opt/sas/viya/home/lib64'
-
+    marker: '#{mark} configure sas/access environment variables (cas)'
+    insertafter: '^CAS_SETTINGS:'
+    block: |2
+          1: ODBCHOME={{ SAS_INSTALL_DIR }}/viya/home/lib64/accessclients
+          2: ODBCINI=$ODBCHOME/odbc.ini
+          3: ODBCINST=$ODBCHOME/odbcinst.ini
+          4: ODBCSYSINI=$ODBCHOME
+          5: PGCLIENTENCODING=UTF-8
+          6: JAVA_HOME=/usr/lib/jvm/jre
+          7: LD_LIBRARY_PATH={{ cas_ld_library_path }}
+          8: EASYSOFT_UNICODE=yes
 
 - name: set pg host
   replace:
@@ -92,3 +102,8 @@
     regexp:  '\ \ deployTarget'
     replace: '  {{ groups["PostgresPrimaryServer"]|first }}'
 
+-  name: remove numbered sample items
+   lineinfile:
+     path: "{{ VIYA_PLAYBOOK_DIR }}/vars.yml"
+     state: absent
+     regexp: '\ \ #[0-9]:'

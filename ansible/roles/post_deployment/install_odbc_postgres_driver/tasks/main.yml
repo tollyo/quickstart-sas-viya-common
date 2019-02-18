@@ -1,0 +1,85 @@
+---
+
+- name: install repository
+  yum:
+    name: https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-redhat11-11-2.noarch.rpm
+    state: installed
+
+- name: install driver
+  yum:
+    name: postgresql11-odbc.x86_64
+    state: installed
+
+# append /usr/pgsql-11/lib to LD_LIBRARY_PATH
+# or cp /usr/pgsql-11/lib /usr/lib64
+
+#- name: configure driver manager
+## edit /opt/sas/viya/config/etc/compsrv/default/sasenv_deployment
+## and /opt/sas/spre/home/SASFoundation/bin/sasenv_local
+#export ODBCSYSINI=/opt/sas/spre/home/lib64/accessclients
+
+
+- name: determine spre/viya
+  stat:
+    path: /opt/sas/spre/home
+  register: is_spre
+
+- set_fact:
+     subdir: "{% if is_spre.stat.exists==True %}spre{% else %}viya{% endif %}"
+
+- debug:
+    var: subdir
+
+- name: create accessclients subdir if needed
+  file:
+    path: /opt/sas/{{ subdir }}/home/lib64/accessclients
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+# - name: create odbcinst.ini if needed on services host
+#   file:
+#      path: /opt/sas/{{ subdir}}/home/lib64/accessclients/odbcinst.ini
+#      state: touch
+#      owner: root
+#      group: root
+#      mode: 0777
+
+
+
+- set_fact:
+    driver_definition: |+
+      [PostgreSQL]
+      Description=ODBC for PostgreSQL 11
+      Driver=/usr/pgsql-11/lib/psqlodbcw.so
+
+- name: install driver
+  shell:  |
+    export ODBCSYSINI="/opt/sas/{{ subdir }}/home/lib64/accessclients"
+    echo "{{driver_definition}}" | {{UNIXODBC_LOCATION}}/bin/odbcinst -i -d -r      
+
+# - lineinfile:
+#     path: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     insertbefore: BOF
+#     state: present
+#     line: '[ODBC Drivers]'
+
+# - lineinfile:
+#     path: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     insertafter: '\[ODBC Drivers\]'
+#     state: present
+#     line: '[ODBC]'
+
+# - name: Add driver definition to odbcinst.ini (controller)
+#   blockinfile:
+#     dest: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     marker: <!-- {mark} Postgres ODBC Driver -->
+#     block: "{{ driver_definition }}"
+
+# - lineinfile:
+#     path: /opt/sas/{{ subdir }}/home/lib64/accessclients/odbcinst.ini
+#     insertafter: '^\[ODBC\ Drivers\]'
+#     state: present
+#     line: 'PostgreSQL=Installed'
+

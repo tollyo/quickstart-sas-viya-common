@@ -1,7 +1,5 @@
 ---
 
-
-
 - name: created share backup directory
   hosts: [SharedVaultServer]
   become: yes
@@ -32,6 +30,50 @@
   tags:
     - install_mysql_client
 
+- name: upgrade unixODBC
+  hosts: [NeedDatabaseAccessClients]
+  gather_facts: False
+  become: yes
+  become_user: root
+  roles:
+    - role: post_deployment/upgrade_unixodbc
+      when: HAS_ODBC | default("0") == "1"
+  tags:
+    - upgrade_unixodbc
 
 
+- name: install odbc postgres driver
+  hosts: [NeedDatabaseAccessClients]
+  gather_facts: False
+  become: yes
+  become_user: root
+  roles:
+    - role: post_deployment/install_odbc_postgres_driver
+      when: HAS_ODBC | default("0") == "1"
 
+  tags:
+    - install_odbc_postgres_driver
+
+- name: install odbc mysql driver
+  hosts: [NeedDatabaseAccessClients]
+  gather_facts: False
+  become: yes
+  become_user: root
+  roles:
+    - role: post_deployment/install_odbc_mysql_driver
+      when: HAS_ODBC | default("0") == "1"
+  tags:
+    - install_odbc_mysql_driver
+
+- name: install odbc redshift driver
+  hosts: [NeedDatabaseAccessClients]
+  gather_facts: False
+  become: yes
+  become_user: root
+  roles:
+    - role: post_deployment/install_odbc_redshift_driver
+      ## only when SAS/Access to ODBC is licensed and SAS/Access to Redshift is not
+      #when: HAS_ODBC | default("0") == "1" and HAS_REDSHIFT | default("0") == "0"
+      when: HAS_ODBC | default("0") == "1"
+  tags:
+    - install_odbc_redshift_driver
