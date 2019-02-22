@@ -89,10 +89,19 @@ fi
 #
 echo -n "${NFS_SHARE_DIR} *(rw,sync)" | sudo tee /etc/exports
 sudo yum install -y nfs-utils nfs-utils-lib
-sudo service rpcbind start
-sudo /sbin/chkconfig --add rpcbind
-sudo service nfs start
-sudo /sbin/chkconfig --add nfs
+
+if ! type -p systemctl; then
+    sudo service rpcbind start
+    sudo /sbin/chkconfig --add rpcbind
+    sudo service nfs start
+    sudo /sbin/chkconfig --add nfs
+else
+    sudo systemctl start rpcbind
+    sudo systemctl enable rpcbind
+    sudo systemctl start nfs
+    sudo systemctl enable nfs
+fi
+
 
 #
 #  Ansible Key
