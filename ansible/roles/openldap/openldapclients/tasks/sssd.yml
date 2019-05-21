@@ -46,7 +46,7 @@
 - debug: var=user_check
 
 - name: log in once to create home directories
-  shell: "su - {{item.name}} "
+  shell: "su - {{item.name}} -c ':'"
   with_items:
     - "{{user_list}}"
     - { name: sasadmin }
