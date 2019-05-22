@@ -11,7 +11,7 @@
 
 - name: build playbook
   shell: |
-   {{ UTILITIES_DIR }}/sas-orchestration build --input {{ TEMPORARY_SOE_FILE }} {{ MIRROR_OPT }}
+   {{ UTILITIES_DIR }}/sas-orchestration build --input {{ TEMPORARY_SOE_FILE }} --deployment-type default {{ MIRROR_OPT }}
   args:
    chdir: /tmp
 
