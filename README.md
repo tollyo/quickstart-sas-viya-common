@@ -662,3 +662,16 @@ ansible-playbook -v /sas/install/ansible/playbooks/post_deployment.yml
         
      Role: post_deployment/install_mysql_client
         ```
+### Restart Services
+
+Finally, sometimes the most current orchestration does not leave all services started. When this happens, a restart is required to fix the issue. 
+
+Example Invocation (as always, run as install user):
+
+```
+export ANSIBLE_CONFIG=/sas/install/ansible/playbooks/ansible.cfg
+ANSIBLE_LOG_PATH=/var/log/sas/install/post_service_restart.log \
+    time ansible-playbook -v /sas/install/common/ansible/playbooks/restart_services.yml
+```
+
+All code is inline and no child roles are called for this function.

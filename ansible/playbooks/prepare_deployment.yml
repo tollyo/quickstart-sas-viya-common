@@ -9,16 +9,6 @@
   tags:
     - download_orchestration_cli
 
-- name: Provide mirror access
-  hosts: [MirrorServer]
-  become: yes
-  become_user: root
-  roles:
-    - role: prepare_deployment/deployment_mirror
-      when: DEPLOYMENT_MIRROR | default()
-  tags:
-    - deployment_mirror
-
 - name: Download SOE file
   hosts: [AnsibleController]
   roles:
@@ -26,10 +16,28 @@
   tags:
     - download_soe_file
 
+- name: Provide mirror access
+  hosts: [MirrorServer]
+  become: yes
+  become_user: root
+  tasks:
+    - set_fact:
+        USE_MIRROR: True
+      when: DEPLOYMENT_MIRROR | default()
+    - include_role:
+        name: prepare_deployment/deployment_mirror
+      when: USE_MIRROR | default()
+  tags:
+    - deployment_mirror
+
 - name: Create Viya playbook
   hosts: [AnsibleController]
-  roles:
-    - role: prepare_deployment/create_viya_playbook
+  tasks:
+    - set_fact:
+        USE_MIRROR: True
+      when: DEPLOYMENT_MIRROR | default()
+    - include_role:
+        name: prepare_deployment/create_viya_playbook
   tags:
     - create_viya_playbook
 

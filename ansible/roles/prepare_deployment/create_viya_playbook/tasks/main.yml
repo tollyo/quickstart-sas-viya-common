@@ -6,7 +6,7 @@
 - name: set mirror option
   set_fact:
     MIRROR_OPT: " --repository-warehouse {{ MIRROR_URL }}"
-  when: DEPLOYMENT_MIRROR | default()
+  when: USE_MIRROR | default()
 
 
 - name: build playbook
