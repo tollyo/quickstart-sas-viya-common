@@ -7,6 +7,10 @@
   get_url:
     url: "{{ SAS_ORCHESTRATION_CLI_URL }}"
     dest: "{{ tempfile }}"
+  register: task_result
+  until: task_result | success
+  retries: 10
+  delay: 5
 
 - name: untar sas-orchestration cli
   unarchive:

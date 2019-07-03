@@ -1,9 +1,55 @@
 ---
 
-- name: download SOE file
+- name: Get the cloud provider
+  import_role:
+    name: common/get_cloud_provider
+
+####### Determine URI Type ##################
+- name: Set the default assumptions for uri type
+  set_fact:
+    IS_HTTP: False
+    IS_BASE64: False
+    IS_S3: False
+
+- name: "check if AWS and thus S3 (because AWS enforces S3 by default presently)."
+  set_fact:
+    IS_S3: True
+  when: IS_AWS
+
+- name: "Check if uri is http or https by checking for http(s)://"
+  set_fact:
+    IS_HTTP: True
+  when: "DEPLOYMENT_DATA_LOCATION.split('://')[0] | lower == 'http' or DEPLOYMENT_DATA_LOCATION.split('://')[0] | lower == 'https' "
+
+- name: "Check if uri is base64 by checking for 'data:application/zip;base64,'. Note, we support no other form of inline data"
+  set_fact:
+    IS_BASE64: True
+  when: "(DEPLOYMENT_DATA_LOCATION | lower).startswith('data:application/zip;base64,')"
+
+####### Fetch File ###############################
+- name: download SOE file for AWS from s3
   shell: |
 
     EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
     EC2_REGION=$(echo ${EC2_AVAIL_ZONE}  | sed "s/[a-z]$//")
 
     aws --region ${EC2_REGION} s3 cp s3://{{ DEPLOYMENT_DATA_LOCATION }} {{ TEMPORARY_SOE_FILE }}
+  when: IS_S3
+
+- name: download SOE file
+  get_url:
+    url: "{{ DEPLOYMENT_DATA_LOCATION }}"
+    dest: "{{ TEMPORARY_SOE_FILE }}"
+    mode: '0660'
+    owner: "{{ ansible_user_id }}"
+  register: task_result
+  until: task_result | success
+  retries: 10
+  delay: 5
+  when: IS_HTTP
+
+- name: convert base64 zip into zipfile
+  shell: |
+
+    echo "{{ DEPLOYMENT_DATA_LOCATION[28:] }}" | base64 --decode > "{{ TEMPORARY_SOE_FILE }}"
+  when: IS_BASE64

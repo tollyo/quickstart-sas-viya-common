@@ -1,0 +1,47 @@
+- hosts: localhost
+  tasks:
+    - block:
+      - set_fact:
+          enable_stray_cleanup: true
+      - shell:
+          cmd: |
+            ansible-playbook -i inventory.ini viya-ark/playbooks/viya-mmsu/viya-services-status.yml
+        args:
+          chdir: /sas/install/ansible/sas_viya_playbook
+        register: status_out
+        until: "'down' not in status_out.stdout and 'not ready' not in status_out.stdout"
+        retries: 1
+        delay: 1
+        failed_when: not( status_out | success )
+
+      - debug: var=status_out.stdout_lines
+      - name: "In case the services have not all come back online, restart them here"
+        block:
+          - shell:
+              cmd: |
+                ansible-playbook -i inventory.ini -e enable_stray_cleanup=true viya-ark/playbooks/viya-mmsu/viya-services-stop.yml
+            args:
+              chdir: /sas/install/ansible/sas_viya_playbook
+          - shell:
+              cmd: |
+                ansible-playbook -i inventory.ini -e enable_stray_cleanup=true viya-ark/playbooks/viya-mmsu/viya-services-stop.yml
+            args:
+              chdir: /sas/install/ansible/sas_viya_playbook
+          - shell:
+              cmd: |
+                ansible-playbook -i inventory.ini -e enable_stray_cleanup=true viya-ark/playbooks/viya-mmsu/viya-services-stop.yml
+            args:
+              chdir: /sas/install/ansible/sas_viya_playbook
+          - shell:
+              cmd: |
+                ansible-playbook -i inventory.ini -e enable_stray_cleanup=true viya-ark/playbooks/viya-mmsu/viya-services-start.yml
+            args:
+              chdir: /sas/install/ansible/sas_viya_playbook
+          - shell:
+              cmd: |
+                ansible-playbook -i inventory.ini -e enable_stray_cleanup=true viya-ark/playbooks/viya-mmsu/viya-services-start.yml
+            args:
+              chdir: /sas/install/ansible/sas_viya_playbook
+        when: "'down' in status_out.stdout or 'not ready' in status_out.stdout"
+  tags:
+    - restart_services

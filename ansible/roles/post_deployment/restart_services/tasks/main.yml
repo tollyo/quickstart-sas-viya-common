@@ -1,0 +1,8 @@
+---
+
+- block:
+    - set_fact:
+        enable_stray_cleanup: true
+    - import_playbook: "{{ ANSIBLE_DIR }}/sas_viya_playbook/viya-ark/playbooks/viya-mmsu/viya-services-status.yml"
+
+
