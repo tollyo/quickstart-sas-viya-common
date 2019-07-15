@@ -30,7 +30,7 @@
 - name: "check if GCP bucket location"
   set_fact:
     IS_GS: True
-  when: IS_GOOGLE
+  when: "IS_GCP and DEPLOYMENT_DATA_LOCATION.split('://')[0] | lower == 'gs'"
 
 ####### Fetch File ###############################
 - name: download SOE file for AWS from s3
@@ -64,4 +64,4 @@
   shell: |
 
     gsutil cp {{ DEPLOYMENT_DATA_LOCATION }} {{ TEMPORARY_SOE_FILE }}
-  when: IS_GOOGLE
+  when: IS_GS

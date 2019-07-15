@@ -42,6 +42,6 @@
 
 - name: Set GOOGLE if check found GOOGLE
   set_fact:
-    IS_GOOGLE: True
+    IS_GCP: True
     CLOUD_PROVIDER: GOOGLE
   when: '"google" in google_check.stdout'
