@@ -42,8 +42,8 @@
       when: "'down' in status_out.stdout or 'not ready' in status_out.stdout"
 
     - shell:
-      cmd: |
-        ansible-playbook -i inventory.ini viya-ark/playbooks/viya-mmsu/viya-services-status.yml
+        cmd: |
+          ansible-playbook -i inventory.ini viya-ark/playbooks/viya-mmsu/viya-services-status.yml
       args:
         chdir: /sas/install/ansible/sas_viya_playbook
       register: status_out
