@@ -40,5 +40,17 @@
           args:
             chdir: /sas/install/ansible/sas_viya_playbook
       when: "'down' in status_out.stdout or 'not ready' in status_out.stdout"
+
+    - shell:
+        cmd: |
+          ansible-playbook -i inventory.ini viya-ark/playbooks/viya-mmsu/viya-services-status.yml
+      args:
+        chdir: /sas/install/ansible/sas_viya_playbook
+      register: status_out
+
+    - fail:
+        msg: "After restart, services were still found to have not successfully started. This likely indicates that the boxes have been undersized. Try increasing the size of the services box."
+      when: "'down' in status_out.stdout or 'not ready' in status_out.stdout"
+
   tags:
     - restart_services
