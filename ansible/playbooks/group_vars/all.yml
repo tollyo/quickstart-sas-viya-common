@@ -36,5 +36,5 @@ VIRK_DIR: "{{ VIYA_PLAYBOOK_DIR }}/viya-ark"
 VIYA_VERSION: "3.4"
 VIRK_COMMIT_ID:
   "3.3": "9efbe65ed9a7cefdbf9db981b7974eee4f3b3933"
-  "3.4": "2252bf581bc241aaf277e68231c3f0bc21a44f14"
+  "3.4": "29dc4ef5e6c3d5a4b099cccda377edaefe7c4cbc"
 
