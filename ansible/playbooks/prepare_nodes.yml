@@ -72,7 +72,7 @@
 
 
 - name: Mount cas cache dir
-  hosts: [CASControllerServer]
+  hosts: [NeedMountUserlibDrive]
   become_user: root
   become: yes
   gather_facts: true
