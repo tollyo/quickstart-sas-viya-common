@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  vars:
+    PLAYBOOK_DIRECTORY: "/sas/install/common/ansible/playbooks"
+    PLAYBOOK_INVENTORY_TEMPLATE: "{{ PLAYBOOK_DIRECTORY }}/inventory.ini.j2"
+    PLAYBOOK_INVENTORY: "{{ PLAYBOOK_DIRECTORY }}/inventory.ini"
+    CAS_INSTANCE_COUNT: 1
+
+  tasks:
+  - name: merge all inventory pieces to make final inventory file
+    # become: yes
+    template:
+      dest: "{{ PLAYBOOK_INVENTORY }}"
+      src: "{{ PLAYBOOK_INVENTORY_TEMPLATE }}"

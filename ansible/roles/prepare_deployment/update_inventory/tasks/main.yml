@@ -162,6 +162,18 @@
     replace: '[sas_casserver_primary]\ncontroller'
 
 
+- name: Set CAS worker targets
+  replace:
+    dest: "{{ VIYA_PLAYBOOK_DIR }}/inventory.ini"
+    regexp: '^\[sas([_-])casserver[_-]worker\]\n'
+    replace: |-
+      [sas\1casserver\1worker]
+      {% if 'CASWorkers' in groups %}
+      {% for server in groups['CASWorkers'] %}
+      {{ server }}
+      {% endfor %}
+      {% endif %}
+
 # Everything else
 - name: All other services
   replace:
