@@ -35,7 +35,6 @@
 ####### Fetch File ###############################
 - name: download SOE file for AWS from s3
   shell: |
-
     EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
     EC2_REGION=$(echo ${EC2_AVAIL_ZONE}  | sed "s/[a-z]$//")
 
@@ -56,12 +55,10 @@
 
 - name: convert base64 zip into zipfile
   shell: |
-
     echo "{{ DEPLOYMENT_DATA_LOCATION[28:] }}" | base64 --decode > "{{ TEMPORARY_SOE_FILE }}"
   when: IS_BASE64
 
 - name: download SOE file from Google bucket location
   shell: |
-
     gsutil cp {{ DEPLOYMENT_DATA_LOCATION }} {{ TEMPORARY_SOE_FILE }}
   when: IS_GS
