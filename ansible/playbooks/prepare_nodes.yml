@@ -10,17 +10,6 @@
   tags:
     - wait_for_viya_vms
 
-- name: Update sshd_config
-  hosts: [sas_servers]
-  become_user: root
-  become: yes
-  gather_facts: false
-  roles:
-    - role: prepare_nodes/update_sshd
-  tags:
-    - update_sshd
-
-    
 - name: Set up hosts routing
   hosts: [sas_servers]
   become_user: root
@@ -39,6 +28,17 @@
     - role: prepare_nodes/initialize_known_hosts
   tags:
     - initialize_known_hosts
+
+
+- name: Update sshd_config
+  hosts: [sas_servers]
+  become_user: root
+  become: yes
+  gather_facts: false
+  roles:
+    - role: prepare_nodes/update_sshd
+  tags:
+    - update_sshd
 
 
 - name: Create saswork dir
