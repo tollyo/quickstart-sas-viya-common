@@ -9,7 +9,7 @@
       until: "'down' not in status_out.stdout and 'not ready' not in status_out.stdout"
       retries: 10
       delay: 1
-      failed_when: not( status_out | success )
+      failed_when: not( status_out is success )
 
     - debug: var=status_out.stdout_lines
     - name: "In case the services have not all come back online, restart them here"

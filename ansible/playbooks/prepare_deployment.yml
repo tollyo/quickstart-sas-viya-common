@@ -69,5 +69,3 @@
     - role: prepare_deployment/get_virk
   tags:
     - get_virk
-
-
