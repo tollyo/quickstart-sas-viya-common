@@ -6,19 +6,19 @@ import os
 __metaclass__ = type
 
 DOCUMENTATION = """
-      lookup: sas_license
-        author: Chris Lyunch <Chris.Lynch@sas.com>
-        version_added: "2.4.2"
-        short_description: read a Viya license file and determine version information
-        description:
-            - This lookup returns a dictionary of attributes about a sas license file
-        options:
-          _terms:
-            description: path(s) of license file zip to interogate
-            required: True
-        notes:
-          - if read in variable context, the file can be interpreted as YAML if the content is valid to the parser.
-          - this lookup does not understand 'globing' - use the fileglob lookup instead.
+model: sas_license
+short_description: read a Viya license file and determine version information
+description:
+   - This lookup returns a dictionary of attributes about a sas license file
+version_added: "2.4.2"
+author: Chris Lynch <Chris.Lynch@sas.com>
+options:
+   _terms:
+      description: path(s) of license file zip to interogate
+      required: True
+notes:
+   - if read in variable context, the file can be interpreted as YAML if the content is valid to the parser.
+   - this lookup does not understand 'globing' - use the fileglob lookup instead.
 """
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.plugins.lookup import LookupBase
