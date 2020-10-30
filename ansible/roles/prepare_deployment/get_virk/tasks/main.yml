@@ -1,7 +1,9 @@
 ---
 
 - name: ensure that Git is installed
-  yum: name={{ item }} state=latest
+  yum: 
+    name: "{{ item }}"
+    state: latest
   with_items:
   - git
 
