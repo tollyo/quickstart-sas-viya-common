@@ -33,7 +33,8 @@ MIRROR_MANAGER_URL: "https://support.sas.com/installation/viya/35/sas-mirror-man
 SAS_ORCHESTRATION_CLI_URL: "https://support.sas.com/installation/viya/35/sas-orchestration-cli/lax/sas-orchestration-linux.tgz"
 VIRK_URL: "https://github.com/sassoftware/viya-ark.git"
 VIRK_DIR: "{{ VIYA_PLAYBOOK_DIR }}/viya-ark"
-VIYA_VERSION: "3.4"
+VIYA_VERSION: "3.5"
 VIRK_COMMIT_ID:
   "3.3": "9efbe65ed9a7cefdbf9db981b7974eee4f3b3933"
   "3.4": "8cd03a3474862b6220947ec1273fc55e0dfbb728"
+  "3.5": "7b851591660dca29329e748fda72374b8a0a79e2"
