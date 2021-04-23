@@ -21,6 +21,14 @@
     # VIRK_BRANCH: ""
     # VIRK_COMMIT: "ee1e6f9"
   when: SAS_LICENSE.viya_version == '3.4'
+
+- name: setting variables for version 3.5
+  set_fact:
+    SAS_HOME_PATH: "/SASDrive"
+    SAS_STUDIO_PATH: "/SASStudioV"
+    # VIRK_BRANCH: ""
+    # VIRK_COMMIT: "ee1e6f9"
+  when: SAS_LICENSE.viya_version == '3.5'
   
 - name: setting url paths and VIYA_VERSION
   set_fact:
