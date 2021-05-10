@@ -6,14 +6,14 @@
     update_cache: yes
     lock_timeout: 300
   with_items:
-     - openldap-servers
-     - openldap-clients
+     - symas-openldap-servers
+     - symas-openldap-clients
 
 - name: force a re-install (needed in some cases)
   become: yes
   shell: |
     yum-complete-transaction
-    yum -y reinstall openldap-servers
+    yum -y reinstall symas-openldap-servers
   ignore_errors: yes
   register: yumreinstall
 - debug: var=yumreinstall
